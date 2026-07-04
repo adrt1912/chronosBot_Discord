@@ -1,9 +1,16 @@
 package aperez578;
 
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter; // 🌟 IMPORTANTE: El motor de eventos de JDA
+import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction; // 🌟 Clase clave de JDA
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
-public class BotonesEventos {
+import java.util.ArrayList;
+import java.util.List;
+
+public class BotonesEventos extends ListenerAdapter {
 
     private static BotonesEventos instancia;
 
@@ -16,39 +23,86 @@ public class BotonesEventos {
     }
 
     public void aplicarBotones(MessageCreateAction accion, Tarea tarea) {
-
         switch (tarea.getBotonesTipo()) {
             case 1: // 📅 BOTONES DE ASISTENCIA
                 Button botonSi = Button.success("asistir_" + tarea.getId(), "✅ Asistiré");
                 Button botonNo = Button.danger("desapuntarse_" + tarea.getId(), "❌ No asistiré");
-                accion.addActionRow(botonSi, botonNo); // Se los acoplamos a la acción de envío
+                accion.addActionRow(botonSi, botonNo);
                 break;
-            case 2: // 📊 ENCUESTA CON OPCIONES RELLENABLES (DINÁMICAS)
+            case 2: // 📊 ENCUESTA CON OPCIONES RELLENABLES
                 String opcionesRaw = tarea.getOpciones();
-
-                // Si por algún motivo está vacío, ponemos opciones por defecto para que no rompa
                 if (opcionesRaw == null || opcionesRaw.isEmpty()) opcionesRaw = "A|B|C|D";
 
-                // Rompemos el texto por la barra vertical |
                 String[] opciones = opcionesRaw.split("\\|");
-
-                // Creamos una fila de componentes de Discord
-                net.dv8tion.jda.api.interactions.components.LayoutComponent[] botones = new net.dv8tion.jda.api.interactions.components.LayoutComponent[opciones.length];
-
-                java.util.List<Button> listaBotones = new java.util.ArrayList<>();
+                List<Button> listaBotones = new ArrayList<>();
 
                 for (int i = 0; i < opciones.length; i++) {
                     String nombreOpcion = opciones[i].trim();
-                    // ID Secreto: "voto_[INDICE]_[ID_TAREA]" -> Ej: "voto_0_5" (Voto por la primera opción del evento 5)
                     String idSecreto = "voto_" + i + "_" + tarea.getId();
-                    // Creamos el botón azul con el nombre real rellenado por el usuario
                     listaBotones.add(Button.primary(idSecreto, nombreOpcion));
                 }
-                // Enganchamos la lista de botones al mensaje
                 accion.setActionRow(listaBotones);
                 break;
             default:
-                // Tipo 0: No hacemos nada, el mensaje se irá limpio sin botones
+                // Tipo 0: Sin botones
+        }
+    }
+
+    @Override // ⚡ ¡Ahora IntelliJ ya sabe qué estás sobrescribiendo y no dará error!
+    public void onButtonInteraction(ButtonInteractionEvent event) {
+        String buttonId = event.getComponentId();
+
+        if (buttonId.startsWith("cal:")) {
+            String[] trozos = buttonId.split(":", 4);
+            String accion = trozos[1];
+            int paginaActual = Integer.parseInt(trozos[2]);
+            String filtro = trozos[3];
+
+            int nuevaPagina = accion.equals("ant") ? paginaActual - 1 : paginaActual + 1;
+
+            List<aperez578.Tarea> tareas = aperez578.Comandos.ComandoCalendario.obtenerTareasFiltradas(event.getChannel().getId(), filtro);
+
+            if (tareas.isEmpty() || nuevaPagina >= tareas.size() || nuevaPagina < 0) {
+                event.editMessage("⚠️ Este calendario ya no está sincronizado. Por favor, usa `/calendario` de nuevo.").setComponents().setEmbeds().queue();
+                return;
+            }
+
+            aperez578.ContextoComando contextoFalso = new aperez578.ContextoComando(event);
+
+            aperez578.Tarea tarea = tareas.get(nuevaPagina);
+            int total = tareas.size();
+
+            EmbedBuilder embed = new EmbedBuilder()
+                    .setTitle("📌 " + tarea.getTitulo())
+                    .setColor(new java.awt.Color(0x3498db))
+                    .addField("🆔 ID del Evento:", "`" + tarea.getId() + "`", true)
+                    .addField("👤 Organiza:", "<@" + tarea.getUserID() + ">", true)
+                    .addField("⏰ Fecha y Hora (Tu hora local):", "<t:" + tarea.getTimestamp() + ":F> (<t:" + tarea.getTimestamp() + ":R>)", false)
+                    .setFooter("Evento " + (nuevaPagina + 1) + " de " + total + " • Chronos Bot", event.getJDA().getSelfUser().getAvatarUrl());
+
+            List<ActionRow> filas = new ArrayList<>();
+
+            List<Button> botonesOperativos = new ArrayList<>();
+            if (tarea.getBotonesTipo() == 1) {
+                botonesOperativos.add(Button.success("asistir_" + tarea.getId(), "📅 Asistir"));
+                botonesOperativos.add(Button.danger("desapuntarse_" + tarea.getId(), "❌ No Asistir"));
+            } else if (tarea.getBotonesTipo() == 2 && tarea.getOpciones() != null) {
+                String[] ops = tarea.getOpciones().split("\\|");
+                for (int i = 0; i < ops.length; i++) {
+                    botonesOperativos.add(Button.primary("voto_" + i + "_" + tarea.getId(), ops[i].trim()));
+                }
+            }
+            if (!botonesOperativos.isEmpty()) filas.add(ActionRow.of(botonesOperativos));
+
+            Button btnAnt = Button.secondary("cal:ant:" + nuevaPagina + ":" + filtro, "◀️ Anterior");
+            if (nuevaPagina == 0) btnAnt = btnAnt.asDisabled();
+
+            Button btnSig = Button.secondary("cal:sig:" + nuevaPagina + ":" + filtro, "Siguiente ▶️");
+            if (nuevaPagina == total - 1) btnSig = btnSig.asDisabled();
+
+            filas.add(ActionRow.of(btnAnt, btnSig));
+
+            event.editMessageEmbeds(embed.build()).setComponents(filas).queue();
         }
     }
 }

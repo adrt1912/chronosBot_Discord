@@ -12,6 +12,7 @@ public class Tarea {
     private String rol_id;
     private int botonesTipo;
     private String opciones;
+    private long timestamp;
 
     public Tarea(String titulo, long timestamp, String userID, String canalID, int id, String rolId,int botonTipo,String opciones){
         this.titulo=titulo;
@@ -24,6 +25,7 @@ public class Tarea {
         // 3. Ahora sí, separamos el pastel y rellenamos tus atributos nativos
         this.fecha = fechaHoraCompleta.toLocalDate(); // Guarda el año-mes-día
         this.hora = fechaHoraCompleta.toLocalTime();
+        this.timestamp=timestamp;
         this.userID=userID;
         this.canalID=canalID;
         this.id=id;
@@ -68,6 +70,10 @@ public class Tarea {
         return opciones;
     }
 
+    public long getTimestamp() {
+        return timestamp;
+    }
+
     public void setCanalID(String canalID) {
         this.canalID = canalID;
     }
@@ -102,6 +108,10 @@ public class Tarea {
 
     public void setOpciones(String opciones) {
         this.opciones = opciones;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     @Override

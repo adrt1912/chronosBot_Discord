@@ -1,10 +1,13 @@
 package aperez578;
 
 import aperez578.Comandos.*;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import java.awt.*;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,39 +17,36 @@ public class LectorDeComandos extends ListenerAdapter {
     private final Map<String, Comando> comandos = new HashMap<>();
 
     public LectorDeComandos() {
-        comandos.put("!Ping", new ComandoPing());
-        comandos.put("!CrearNotificacion", new ComandoCrearNotificacion());
-        comandos.put("!ListarNotificacion", new ComandoListar());
-        comandos.put("!Ayuda", new ComandoAyuda());
-        comandos.put("!EliminarTarea", new ComandoBorrar());
-        comandos.put("!Calendario", new ComandoCalendario());
-        comandos.put("!EditarNotificacion", new ComandoEditarNotificacion());
-        comandos.put("!Configuracion",new ComandoConfigurar());
-        comandos.put("!Cerrar",new ComandoCerrarEncuesta());
-        comandos.put("!MisEventos",new ComandoMisEventos());
-    }
-
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) return;
-
-        String[] textoEntero = event.getMessage().getContentRaw().split(" ");
-        String comandoEscrito = textoEntero[0];
-
-        Comando comando = comandos.get(comandoEscrito);
-        if (comando != null) comando.ejecutar(event);
+        comandos.put("ping", new ComandoPing());
+        comandos.put("crear-notificacion", new ComandoCrearNotificacion());
+        comandos.put("listar-notificaciones", new ComandoListar());
+        comandos.put("ayuda", new ComandoAyuda());
+        comandos.put("eliminar-tarea", new ComandoBorrar());
+        comandos.put("calendario", new ComandoCalendario());
+        comandos.put("editar-notificacion", new ComandoEditarNotificacion());
+        comandos.put("configuracion",new ComandoConfigurar());
+        comandos.put("cerrar",new ComandoCerrarEncuesta());
+        comandos.put("mis-eventos",new ComandoMisEventos());
+        comandos.put("listar-resultados",new ComandoListarResultados());
+        comandos.put("recordatorio",new ComandoRecordatorio());
     }
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String idBoton = event.getComponentId();
-        String[] partest = idBoton.split("_");
 
+        // 🛡️ EL ESCUDO: Si el botón es del calendario, ignorarlo en esta clase (lo gestiona BotonesEventos)
+        if (idBoton.startsWith("cal:")) {
+            return;
+        }
+
+        // A partir de aquí tu lógica de siempre procesará los botones de asistencia y encuestas de forma segura
+        String[] partest = idBoton.split("_");
         int id = Integer.parseInt(partest[partest.length - 1]);
 
         if (ConexionBD.getConexionBD().obtenerTareaPorId(id) == null) {
             event.reply("❌ Lo siento, este evento o encuesta ya ha finalizado.")
-                    .setEphemeral(true) // Hace que el mensaje solo lo vea el que pulsó
+                    .setEphemeral(true)
                     .queue();
         } else {
             String userid = event.getUser().getId();
@@ -58,7 +58,6 @@ public class LectorDeComandos extends ListenerAdapter {
             if (buttonid.startsWith("asistir_")) {
                 idTarea = Integer.parseInt(buttonid.replace("asistir_", ""));
                 bd.apuntarseTarea(idTarea, userid, "SI");
-                // Usamos deferEdit() para decirle a Discord que procesamos el clic de forma silenciosa
                 event.deferEdit().queue();
             }
             // 🔄 CASO 2: PULSAN "NO ASISTIR"
@@ -77,32 +76,27 @@ public class LectorDeComandos extends ListenerAdapter {
                 event.deferEdit().queue();
             }
 
-            // 🌟 SI SE DETECTÓ UNA TAREA VÁLIDA, REDIBUJAMOS LA TARJETA EN VIVO
-            if (idTarea != -1) {
-                actualizarTarjetaEnVivo(event, idTarea);
-            }
+            if (idTarea != -1) actualizarTarjetaEnVivo(event, idTarea);
         }
     }
 
-        // 🛠️ MÉTODOD AUXILIAR PARA REDIBUJAR LA TARJETA
-        private void actualizarTarjetaEnVivo (ButtonInteractionEvent event,int idTarea){
-            ConexionBD bd = ConexionBD.getConexionBD();
-            Tarea tarea = bd.obtenerTareaPorId(idTarea);
+    private void actualizarTarjetaEnVivo (ButtonInteractionEvent event,int idTarea) {
+        ConexionBD bd = ConexionBD.getConexionBD();
+        Tarea tarea = bd.obtenerTareaPorId(idTarea);
 
-            if (tarea == null) return; // Si la tarea ya no existe, cancelamos
+        if (tarea != null) {
+            long ts = tarea.getTimestamp();
 
-            // Reconstruimos la estructura base del Embed original
-            net.dv8tion.jda.api.EmbedBuilder nuevoEmbed = new net.dv8tion.jda.api.EmbedBuilder()
+            EmbedBuilder nuevoEmbed = new EmbedBuilder()
                     .setTitle("📌 " + tarea.getTitulo())
                     .addField("🆔 ID del Evento:", "`" + tarea.getId() + "`", true)
                     .addField("👤 Organiza:", "<@" + tarea.getUserID() + ">", true)
-                    .addField("⏰ Fecha y Hora:", "`" + tarea.getFecha() + "` a las `" + tarea.getHora() + "` hs", false)
+                    .addField("⏰ Fecha y Hora (Tu hora local):", "<t:" + ts + ":F> (<t:" + ts + ":R>)", false)
                     .setFooter("Chronos Bot • Actualizado en vivo", event.getJDA().getSelfUser().getAvatarUrl())
-                    .setTimestamp(java.time.Instant.now());
+                    .setTimestamp(Instant.now());
 
-            // 🟢 SI ES UN EVENTO COMUNITARIO (Tipo 1): Mostramos la lista de nombres
             if (tarea.getBotonesTipo() == 1) {
-                nuevoEmbed.setColor(java.awt.Color.GREEN);
+                nuevoEmbed.setColor(Color.GREEN);
                 List<String> asistentes = bd.obtenerAsistentes(idTarea);
 
                 if (asistentes.isEmpty())
@@ -110,12 +104,12 @@ public class LectorDeComandos extends ListenerAdapter {
                 else {
                     StringBuilder sb = new StringBuilder();
                     for (String userId : asistentes) {
-                        sb.append("<@").append(userId).append("> "); // Los mencionamos dinámicamente
+                        sb.append("<@").append(userId).append("> ");
                     }
                     nuevoEmbed.addField("👥 Asistentes (" + asistentes.size() + "):", sb.toString(), false);
                 }
             } else if (tarea.getBotonesTipo() == 2) {
-                nuevoEmbed.setColor(new java.awt.Color(0x3498db));
+                nuevoEmbed.setColor(new Color(0x3498db));
                 String[] opciones = tarea.getOpciones().split("\\|");
                 List<String> todosLosVotos = bd.obtenerTodosLosVotos(idTarea);
 
@@ -125,13 +119,17 @@ public class LectorDeComandos extends ListenerAdapter {
                     String nombreOpcion = opciones[i].trim();
                     final String indiceString = String.valueOf(i);
 
-                    // Contamos cuántas veces aparece este índice en la lista de votos
                     long numVotos = todosLosVotos.stream().filter(v -> v.equals(indiceString)).count();
-
                     nuevoEmbed.addField(nombreOpcion, "🔹 `" + numVotos + "` votos", true);
                 }
             }
             event.getHook().editOriginalEmbeds(nuevoEmbed.build()).queue();
         }
+    }
 
+    public void despacharSlash(String nombreComando, SlashCommandInteractionEvent event) {
+        Comando comando = comandos.get(nombreComando.toLowerCase());
+        if (comando != null) comando.ejecutar(new ContextoComando(event));
+        else event.reply("❌ Comando no implementado en el sistema central.").setEphemeral(true).queue();
+    }
 }

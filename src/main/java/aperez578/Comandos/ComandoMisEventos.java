@@ -2,67 +2,46 @@ package aperez578.Comandos;
 
 import aperez578.Comando;
 import aperez578.ConexionBD;
+import aperez578.ContextoComando;
 import aperez578.Tarea;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-
+import net.dv8tion.jda.api.EmbedBuilder;
+import java.awt.Color;
 import java.util.List;
 
 public class ComandoMisEventos implements Comando {
 
     @Override
-    public void ejecutar(MessageReceivedEvent event) {
-        String autorid=event.getAuthor().getId();
-        List<Tarea> listTareaApuntadas= ConexionBD.getConexionBD().listarTareasAsistidas(autorid);
-        List<Tarea> listTareasOrganizadas=ConexionBD.getConexionBD().listarTareas(autorid);
-        if(listTareaApuntadas.isEmpty()&&listTareasOrganizadas.isEmpty())event.getChannel().sendMessage("📭 <@" + autorid + ">, tu agenda está completamente vacía actualmente.").queue();
-        else{
-            StringBuilder mensajeFinal = new StringBuilder();
-            mensajeFinal.append("📅 **__TU AGENDA PERSONAL DE EVENTOS__** 📅\n")
-                    .append("Hola <@").append(autorid).append(">, aquí tienes tus tarjetas de actividad:\n\n");
+    public void ejecutar(ContextoComando ctx) {
+        String userId = ctx.getIdAutor();
 
-            //  EVENTOS CREADOS POR EL USUARIO
-            mensajeFinal.append("👑 **EVENTOS ORGANIZADOS POR TI**\n");
-            if (listTareasOrganizadas.isEmpty()) mensajeFinal.append("> *No estás organizando ningún evento ahora mismo.*\n\n");
-            else {
-                for (Tarea t : listTareasOrganizadas) {
-                    // 🌟 Tarjeta de texto usando '>>>' para crear el bloque contenedor
-                    mensajeFinal.append(">>> 📌 **").append(t.getTitulo()).append("**\n")
-                            .append("🆔 **ID del Evento:** `").append(t.getId()).append("`\n")
-                            .append("⏰ **Fecha y Hora:** `").append(t.getFecha()).append("` a las `").append(t.getHora()).append("` hs\n")
-                            .append("───────────────────────────────\n\n"); // Separador interno
-                }
-            }
+        // 🔍 Buscamos en la base de datos los eventos donde este usuario está apuntado
+        List<Tarea> misEventos = ConexionBD.getConexionBD().listarTareasAsistidas(userId);
 
-            //  EVENTOS A LOS QUE ASISTE
-            mensajeFinal.append("👥 **TUS PRÓXIMAS CITAS (APUNTADO)**\n");
+        // 🛑 CASO A: Si la agenda está totalmente vacía
+        if (misEventos == null || misEventos.isEmpty()) {
+            EmbedBuilder embedVacio = new EmbedBuilder()
+                    .setTitle("📅 Tu Agenda Personal")
+                    .setColor(Color.GRAY)
+                    .setDescription("¡Hola <@" + userId + ">! Actualmente no estás apuntado a ningún evento.\n\n" +
+                            "💡 *Pásate por el `/calendario` y pulsa **Asistir** en los eventos que te interesen.*");
 
-            // Filtramos para no mostrar duplicados si asiste a un evento que él mismo creó
-            List<Tarea> asistidosFiltrados = listTareaApuntadas.stream()
-                    .filter(t -> !t.getUserID().equals(autorid))
-                    .toList();
-
-            if (asistidosFiltrados.isEmpty()) mensajeFinal.append("> *No estás apuntado a eventos de otros usuarios.*\n\n");
-             else {
-                for (Tarea t : asistidosFiltrados) {
-                    mensajeFinal.append(">>> ✅ **").append(t.getTitulo()).append("**\n")
-                            .append("👤 **Organiza:** <@").append(t.getUserID()).append(">\n")
-                            .append("⏰ **Fecha y Hora:** `").append(t.getFecha()).append("` a las `").append(t.getHora()).append("` hs\n")
-                            .append("───────────────────────────────\n\n");
-                }
-            }
-
-            // 4. Enviamos el bloque de tarjetas por Mensaje Privado (DM)
-            event.getAuthor().openPrivateChannel().queue(
-                    privateChannel -> {
-                        privateChannel.sendMessage(mensajeFinal.toString()).queue();
-                        // Confirmación en el canal público
-                        event.getChannel().sendMessage("📬 <@" + autorid + ">, te he enviado tus tarjetas de eventos por privado.").queue();
-                    },
-                    throwable -> {
-                        // Si el privado falla (DMs cerrados), se lo enviamos al canal de texto normal
-                        event.getChannel().sendMessage("⚠️ <@" + autorid + ">, tienes los mensajes privados cerrados. Te dejo tus tarjetas aquí:\n\n" + mensajeFinal).queue();
-                    }
-            );
+            ctx.responderEmbed(embedVacio.build());
+            return;
         }
+
+        // 🟢 CASO B: Si el usuario sí tiene eventos guardados
+        StringBuilder sb = new StringBuilder();
+        sb.append("📅 **TU AGENDA PERSONAL DE EVENTOS** 📅\n");
+        sb.append("Hola <@").append(userId).append(">, aquí tienes tus próximas actividades:\n\n");
+
+        for (Tarea tarea : misEventos) {
+            long ts = tarea.getTimestamp();
+            sb.append("📌 **").append(tarea.getTitulo()).append("**\n")
+                    .append("🆔 ID: `").append(tarea.getId()).append("` | ⏰ Horario: <t:").append(ts).append(":F> (<t:").append(ts).append(":R>)\n")
+                    .append("───────────────────\n");
+        }
+
+        // Enviamos la lista formateada de una sola vez editando el "Pensando..."
+        ctx.responder(sb.toString());
     }
 }

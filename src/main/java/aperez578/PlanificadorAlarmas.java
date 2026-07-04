@@ -44,10 +44,20 @@ public class PlanificadorAlarmas {
                 List<Tarea> avisoUnDIa = bd.tareasAvisar(tiempoahora + 86400, tiempoahora + 86460);
                 enviarAviso(avisoUnDIa, "📅 **Recordatorio: Falta 1 día** 📅");
 
+                //recordatorios
+                List<RecordatorioObj> recordatoriosVencidos = ConexionBD.getConexionBD().obtenerRecordatoriosVencidos(tiempoahora);
+                for (RecordatorioObj rec : recordatoriosVencidos) {
+                    TextChannel canal = jda.getTextChannelById(rec.getCanalid());
+                    if (canal != null) canal.sendMessage("🔔 <@" + rec.getUsuarioid() + "> **¡Recordatorio!**\n> " + rec.getMensaje()).queue();
+                    // Lo borramos inmediatamente para que no se vuelva a repetir
+                    ConexionBD.getConexionBD().eliminarRecordatorio(rec.getId());
+                }
             } catch (Throwable e) {
                 logger.info("⚠️ Error en el bucle de alarmas: " + e.getMessage());
             }
-        }, 0, 1, TimeUnit.MINUTES);
+        }, 0, 1, TimeUnit.SECONDS);
+
+
     }
 
     public void enviarAviso(List<Tarea> tareas, String text) {
@@ -58,33 +68,34 @@ public class PlanificadorAlarmas {
             if (canalOriginal != null) {
                 // 1. Buscamos si el servidor tiene un canal preferido global configurado
                 String canalConfiguradoId = ConexionBD.getConexionBD().obtenerCanalAlertas(canalOriginal.getGuild().getId());
-
                 TextChannel canalDeEnvio = canalOriginal; // Por defecto mandamos al original
 
                 // 2. Si hay un canal global configurado, desviamos el paquete allí
                 if (canalConfiguradoId != null) {
                     TextChannel canalGlobal = jda.getTextChannelById(canalConfiguradoId);
                     if (canalGlobal != null) canalDeEnvio = canalGlobal;
-
                 }
 
                 // 3. Preparamos el texto del ping (Mención de Rol)
                 String avisoConMencion = text;
                 if (!"NINGUNA".equals(tarea.getRol_id())) avisoConMencion = tarea.getRol_id() + " " + text;
 
-                // 4. Reconstruimos el Embed de la alarma que se había borrado
+                // 4. Reconstruimos el Embed de la alarma
                 EmbedBuilder embed = new EmbedBuilder()
                         .setTitle(text)
                         .setColor(Color.RED)
                         .setDescription("¡Preparaos comunitarios, tenemos una nueva cita!")
                         .addField("📌 Evento:", tarea.getTitulo(), false)
                         .addField("👤 Organizador:", "<@" + tarea.getUserID() + ">", true)
-                        .addField("⏰ Hora programada:", tarea.getFecha() + " a las " + tarea.getHora() + " hs", true)
+
+                        .addField("⏰ Hora programada:", "<t:" + tarea.getTimestamp() + ":F>\n⏳ *Comienza: <t:" + tarea.getTimestamp() + ":R>*", false)
+
                         .setFooter("Chronos Bot • Vigilante del Tiempo", jda.getSelfUser().getAvatarUrl())
                         .setTimestamp(Instant.now());
 
                 // 5. Empaquetamos la acción en el canal definitivo e inyectamos los botones
                 MessageCreateAction accion = canalDeEnvio.sendMessage(avisoConMencion).addEmbeds(embed.build());
+
                 BotonesEventos.getBotonesEventos().aplicarBotones(accion, tarea);
 
                 accion.queue();

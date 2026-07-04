@@ -2,10 +2,10 @@ package aperez578.Comandos;
 
 import aperez578.Comando;
 import aperez578.ConexionBD;
+import aperez578.ContextoComando;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-import java.awt.*;
+import java.awt.Color;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -16,73 +16,63 @@ public class ComandoEditarNotificacion implements Comando {
     private final DateTimeFormatter formateador = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     @Override
-    public void ejecutar(MessageReceivedEvent event) {
-        String[] comando = event.getMessage().getContentRaw().split(" ");
+    public void ejecutar(ContextoComando ctx) {
         ConexionBD conexionBD = ConexionBD.getConexionBD();
 
-        if (comando.length < 4) {
-            event.getChannel().sendMessage("""
-                    ⚠️ **Uso incorrecto del comando**.
-                    🔹 `!editar [ID] titulo [Nuevo Nombre]`
-                    🔹 `!editar [ID] fecha [DD/MM/YYYY] [HH:MM]`""").queue();
-        } else {
+        // 📥 Extraemos los parámetros nativos de Discord directamente
+        int id = ctx.getParametroInt("id");
+        boolean tieneTitulo = ctx.tieneOpcion("titulo");
+        boolean tieneFecha = ctx.tieneOpcion("fecha_hora");
 
-            try {
-                // Ahora que sabemos que el comando es largo, es seguro extraer los datos
-                int comandId = Integer.parseInt(comando[1]);
-                String parametroEditar = comando[2].toLowerCase();
+        if (!tieneTitulo && !tieneFecha) ctx.responder("⚠️ **Error:** Debes rellenar al menos uno de los campos opcionales (`titulo` o `fecha_hora`) para poder editar el evento.");
+        else {
 
-                EmbedBuilder embed = new EmbedBuilder().setTimestamp(java.time.Instant.now());
+            EmbedBuilder embed = new EmbedBuilder().setTimestamp(java.time.Instant.now());
+            StringBuilder descripcionCambios = new StringBuilder();
+            boolean exitoModificacion = false;
+            boolean huboErrorFecha = false;
 
-                // 📅 CASO 1: EDITAR FECHA
-                if (parametroEditar.equals("fecha")) {
-                    if (comando.length < 5)
-                        event.getChannel().sendMessage("⚠️ Falta la hora. Ejemplo: `!editar " + comandId + " fecha 15/07/2026 18:30`").queue();
-                    else {
-                        String fechaTexto = comando[3] + " " + comando[4];
-                        try {
-                            LocalDateTime fechaConvertida = LocalDateTime.parse(fechaTexto, formateador);
-                            long nuevoTimestamp = fechaConvertida.atZone(ZoneId.systemDefault()).toEpochSecond();
+            // 📝 MÓDULO 1: EDITAR TÍTULO
+            if (tieneTitulo) {
+                String nuevoTitulo = ctx.getParametroString("titulo").trim();
+                if (conexionBD.actualizarTitulo(id, nuevoTitulo)) {
+                    descripcionCambios.append("📝 **Nuevo título:** ").append(nuevoTitulo).append("\n");
+                    exitoModificacion = true;
+                }
+            }
 
-                            if (conexionBD.actualizarTiempo(comandId, nuevoTimestamp)) {
-                                embed.setTitle("✅ Evento Editado")
-                                        .setColor(Color.GREEN)
-                                        .setDescription("La tarea con ID `" + comandId + "` ahora tiene la fecha:\n**" + comando[3] + " a las " + comando[4] + " hs**");
-                            } else
-                                embed.setTitle("❌ Error").setColor(Color.RED).setDescription("No se encontró ninguna tarea con el ID `" + comandId + "`.");
+            // 📅 MÓDULO 2: EDITAR FECHA Y HORA
+            if (tieneFecha) {
+                String fechaTexto = ctx.getParametroString("fecha_hora").trim();
+                try {
+                    LocalDateTime fechaConvertida = LocalDateTime.parse(fechaTexto, formateador);
+                    long nuevoTimestamp = fechaConvertida.atZone(ZoneId.systemDefault()).toEpochSecond();
 
-                            event.getChannel().sendMessageEmbeds(embed.build()).queue();
-
-                        } catch (DateTimeParseException e) {
-                            event.getChannel().sendMessage("❌ **Fecha u hora inválida**. Usa el formato: `DD/MM/YYYY HH:MM`").queue();
-                        }
+                    if (conexionBD.actualizarTiempo(id, nuevoTimestamp)) {
+                        // Aprovechamos tu formato premium de marcas de tiempo relativas
+                        descripcionCambios.append("⏰ **Nuevo horario:** <t:").append(nuevoTimestamp).append(":F> (<t:").append(nuevoTimestamp).append(":R>)\n");
+                        exitoModificacion = true;
                     }
+                } catch (DateTimeParseException e) {
+                    huboErrorFecha = true;
                 }
-                //  CASO 2: EDITAR TÍTULO
-                else if (parametroEditar.equals("titulo")) {
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 3; i < comando.length; i++) {
-                        sb.append(comando[i]).append(" ");
-                    }
-                    String nuevoTitulo = sb.toString().trim();
+            }
 
-                    if (conexionBD.actualizarTitulo(comandId, nuevoTitulo)) {
-                        embed.setTitle("✅ Evento Editado")
-                                .setColor(Color.GREEN)
-                                .setDescription("La tarea con ID `" + comandId + "` ahora se llama:\n**" + nuevoTitulo + "**");
-                    } else
-                        embed.setTitle("❌ Error").setColor(Color.RED).setDescription("No se encontró ninguna tarea con el ID `" + comandId + "`.");
-
-                    event.getChannel().sendMessageEmbeds(embed.build()).queue();
+            // 🚨 GESTIÓN DE RESPUESTAS E INFORMES
+            if (huboErrorFecha)
+                ctx.responder("❌ **Fecha u hora inválida**. Usa el formato exacto: `DD/MM/YYYY HH:MM` (Ej: `15/07/2026 18:30`)");
+            else {
+                if (exitoModificacion) {
+                    embed.setTitle("✅ Evento ID `" + id + "` Actualizado")
+                            .setColor(Color.GREEN)
+                            .setDescription("Se han aplicado los siguientes cambios con éxito:\n\n" + descripcionCambios.toString());
+                    ctx.responderEmbed(embed.build());
+                } else {
+                    embed.setTitle("❌ Error de Edición")
+                            .setColor(Color.RED)
+                            .setDescription("No se encontró ningún evento o encuesta activa con el ID `" + id + "` en la base de datos.");
+                    ctx.responderEmbed(embed.build());
                 }
-
-                // CASO 3: PARÁMETRO INCORRECTO
-                else {
-                    event.getChannel().sendMessage("⚠️ Campo desconocido. Solo puedes editar `titulo` o `fecha`.").queue();
-                }
-
-            } catch (NumberFormatException e) {
-                event.getChannel().sendMessage("❌ El ID de la tarea debe ser un número entero válido.").queue();
             }
         }
     }

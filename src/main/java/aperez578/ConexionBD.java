@@ -44,6 +44,15 @@ public class ConexionBD {
                 "opciones TEXT" +
                 ");";
 
+        // 🌟 CORREGIDO: Mismos nombres de columna que usan el INSERT, SELECT y DELETE
+        String sqlRecordatorio = "CREATE TABLE IF NOT EXISTS Recordatorios (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "usuario_id TEXT NOT NULL, " +
+                "canal_id TEXT NOT NULL, " +
+                "mensaje TEXT NOT NULL, " +
+                "tiempo_ejecucion LONG NOT NULL" +
+                ");";
+
         // Añade esto dentro de crearTablasSiNoExisten() en ConexionBD.java:
         String sqlConfig = "CREATE TABLE IF NOT EXISTS Configuracion (" +
                 "guild_id TEXT PRIMARY KEY, " +
@@ -61,10 +70,12 @@ public class ConexionBD {
         try (Connection c = obtenerConexion();
              PreparedStatement ps = c.prepareStatement(sqlEventos);
              PreparedStatement ps1 =c.prepareStatement(sqlApuntado);
-             PreparedStatement ps2 = c.prepareStatement(sqlConfig)) {
+             PreparedStatement ps2 = c.prepareStatement(sqlConfig);
+             PreparedStatement ps3 = c.prepareStatement(sqlRecordatorio)) {
             ps.execute();
             ps1.execute();
             ps2.execute();
+            ps3.execute();
         } catch (Exception e) {
             logger.info("Error al crear alguna tabla: {}", e.getMessage());
         }
@@ -275,7 +286,7 @@ public class ConexionBD {
     // 2. Devuelve la lista de IDs de Discord de los usuarios apuntados al evento
     public List<String> obtenerAsistentes(int idTarea) {
         List<String> usuarios = new ArrayList<>();
-        String op = "SELECT usuario_id FROM Asistencia WHERE tarea_id = ? AND voto = 'SI'";
+        String op = "SELECT usuario_id FROM Asistencia WHERE tarea_id = ?";
         try (Connection c = obtenerConexion();
              PreparedStatement ps = c.prepareStatement(op)) {
             ps.setInt(1, idTarea);
@@ -348,4 +359,51 @@ public class ConexionBD {
         return tareaList;
     }
 
+    public boolean guardarRecordatorio(String userId, String canalId, String mensaje, long timestamp) {
+        String sql = "INSERT INTO Recordatorios(usuario_id, canal_id, mensaje, tiempo_ejecucion) VALUES (?,?,?,?)";
+        try (Connection c = obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, userId);
+            ps.setString(2, canalId);
+            ps.setString(3, mensaje);
+            ps.setLong(4, timestamp);
+            return ps.executeUpdate() == 1;
+        } catch (Exception e) {
+            logger.info("Error al guardar recordatorio: " + e.getMessage());
+            return false;
+        }
+    }
+    public boolean eliminarRecordatorio(int id){
+
+        String op="delete from Recordatorios where id=?";
+
+        try (Connection c=obtenerConexion();
+        PreparedStatement ps=c.prepareStatement(op)){
+            ps.setInt(1,id);
+            return ps.executeUpdate()==1;
+
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+        }
+        return false;
+    }
+    public List<RecordatorioObj> obtenerRecordatoriosVencidos(long tiempoAhora) {
+        List<RecordatorioObj> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Recordatorios WHERE tiempo_ejecucion <= ?";
+        try (Connection c = obtenerConexion(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, tiempoAhora);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                lista.add(new RecordatorioObj(
+                        rs.getInt("id"),
+                        rs.getString("usuario_id"),
+                        rs.getString("canal_id"),
+                        rs.getString("mensaje")
+                ));
+            }
+        } catch (Exception e) {
+            logger.info("Error al buscar recordatorios vencidos: " + e.getMessage());
+        }
+        return lista;
+    }
 }
