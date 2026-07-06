@@ -1,5 +1,6 @@
 package aperez578;
 
+import aperez578.Notificaciones.Comandos.NotificacionesBD;
 import aperez578.Notificaciones.Comandos.Tarea;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -20,7 +21,6 @@ public class ManejadorSlash extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        // 🚀 Le mandamos el nombre del comando y el evento al despachador central
         lectorMensajes.despacharSlash(event.getName(), event);
     }
 
@@ -30,7 +30,7 @@ public class ManejadorSlash extends ListenerAdapter {
         if (event.getFocusedOption().getName().equals("id")) {
 
             // 2. Traemos la lista de tareas activas de este canal (igual que hace tu calendario)
-            List<Tarea> tareas = ConexionBD.getConexionBD().listarTareasServer(event.getChannel().getId());
+            List<Tarea> tareas = NotificacionesBD.listarTareasServer(event.getChannel().getId());
 
             // 3. Capturamos lo que el usuario está escribiendo en este milisegundo
             String loQueEstaEscribiendo = event.getFocusedOption().getValue().toLowerCase();

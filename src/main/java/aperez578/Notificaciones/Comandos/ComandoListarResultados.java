@@ -1,9 +1,11 @@
 package aperez578.Notificaciones.Comandos;
 
 import aperez578.Comando;
-import aperez578.ConexionBD;
 import aperez578.ContextoComando;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+
 import java.awt.*;
 import java.util.List;
 
@@ -14,10 +16,10 @@ public class ComandoListarResultados implements Comando {
         try {
             int idTarea = ctx.getParametroInt("id");
 
-            Tarea tarea = ConexionBD.getConexionBD().obtenerTareaPorId(idTarea);
+            Tarea tarea = NotificacionesBD.obtenerTareaPorId(idTarea);
             if (tarea == null) ctx.responder("❌ No se ha encontrado ningún evento activo con el ID `" + idTarea + "`.");
             else {
-                List<String> asistentesId = ConexionBD.getConexionBD().obtenerAsistentes(idTarea);
+                List<String> asistentesId = NotificacionesBD.obtenerAsistentes(idTarea);
 
                 // Reconstruimos tu preciosa tarjeta azul
                 EmbedBuilder embed = new EmbedBuilder()
@@ -44,5 +46,10 @@ public class ComandoListarResultados implements Comando {
             // Si el usuario usa '!' y se olvida el número o escribe letras, este catch lo atrapa elegantemente
             ctx.responder("❌ **Error:** Debes indicar un ID numérico de evento válido.\n🔹 Uso con prefijo: `!Lista [ID]` \n🔹 Uso con barra: `/lista id: [ID]`");
         }
+    }
+
+    @Override
+    public SlashCommandData getDatosComando() {
+        return Commands.slash("listar-resultados", "Muestra los resultados finales de las votaciones");
     }
 }

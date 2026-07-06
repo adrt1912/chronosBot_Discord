@@ -1,9 +1,10 @@
 package aperez578.Notificaciones.Comandos;
 
 import aperez578.Comando;
-import aperez578.ConexionBD;
 import aperez578.ContextoComando;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 public class ComandoConfigurar implements Comando {
 
@@ -14,14 +15,20 @@ public class ComandoConfigurar implements Comando {
 
         // Verificamos si el usuario se ha olvidado de poner el canal
         if (canalMencionado == null) {
-            ctx.responder("⚠️ **Uso incorrecto**. Debes indicar un canal válido:\n" +
-                    "🔹 Con texto: `!Configurar [#canal]` (Ej: `!Configurar #anuncios`)\n" +
-                    "🔹 Con barra: `/configuracion canal: [#canal]`");
+            ctx.responder("""
+                    ⚠️ **Uso incorrecto**. Debes indicar un canal válido:
+                    🔹 Con texto: `!Configurar [#canal]` (Ej: `!Configurar #anuncios`)
+                    🔹 Con barra: `/configuracion canal: [#canal]`""");
         } else {
             // Guardamos en la base de datos usando el ID del servidor y del canal desde el contexto 🌟
-            ConexionBD.getConexionBD().guardarCanalAlertas(ctx.getGuildId(), canalMencionado.getId());
+            NotificacionesBD.guardarCanalAlertas(ctx.getGuildId(), canalMencionado.getId());
 
             ctx.responder("✅ **Configuración guardada**. A partir de ahora, todas las alarmas automáticas se enviarán a " + canalMencionado.getAsMention());
         }
+    }
+
+    @Override
+    public SlashCommandData getDatosComando() {
+        return Commands.slash("configuracion", "Configura el canal de alertas global");
     }
 }

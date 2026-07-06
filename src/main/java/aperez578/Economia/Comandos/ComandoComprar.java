@@ -1,11 +1,13 @@
 package aperez578.Economia.Comandos;
 
 import aperez578.Comando;
-import aperez578.ConexionBD;
 import aperez578.ContextoComando;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 import java.awt.Color;
 import java.util.Objects;
@@ -20,7 +22,7 @@ public class ComandoComprar implements Comando {
 
         String userId = ctx.getIdAutor();
         int articulo = ctx.getParametroInt("articulo");
-        long[] datosC = ConexionBD.getConexionBD().obtenerPerfilEconomia(userId);
+        long[] datosC =EconomiaBD.obtenerPerfilEconomia(userId);
         long saldo = datosC[0];
 
         // ⚠ REEMPLAZA ESTAS IDS POR LAS IDS REALES DE LOS ROLES DE TU PROPIO SERVIDOR
@@ -49,7 +51,7 @@ public class ComandoComprar implements Comando {
                 ctx.responder("🧐 **Objeto Duplicado** | ¡Ya tienes este rol! No tires el dinero.");
             else {
                 // Cobramos y otorgamos el rol
-                ConexionBD.getConexionBD().actualizarEconomia(userId, saldo - precio, datosC[1]);
+                EconomiaBD.actualizarEconomia(userId, saldo - precio, datosC[1]);
                 event.getGuild().addRoleToMember(event.getMember(), rol).queue();
                 ctx.responder("✅ **¡Compra Completada!** | Has adquirido el rol **" + rol.getName() + "** por **" + precio + "** monedas.");
             }
@@ -65,7 +67,7 @@ public class ComandoComprar implements Comando {
             else if (saldo < precio)
                 ctx.responder("💸 **Fondos Insuficientes** | El megáfono cuesta **" + precio + "** monedas. Te faltan **" + (precio - saldo) + "**.");
             else {
-                ConexionBD.getConexionBD().actualizarEconomia(userId, saldo - precio, datosC[1]);
+                EconomiaBD.actualizarEconomia(userId, saldo - precio, datosC[1]);
                 ctx.responder("📢 **¡Megáfono activado con éxito!** El anuncio ha sido enviado al canal.");
 
                 // Envía el anuncio formal al canal de texto
@@ -80,12 +82,12 @@ public class ComandoComprar implements Comando {
             long precio = 30000;
             if (saldo < precio) ctx.responder("💸 **Fondos Insuficientes** | Crear tu búnker privado cuesta **" + precio + "** monedas. Te faltan **" + (precio - saldo) + "**.");
          else {
-            ConexionBD.getConexionBD().actualizarEconomia(userId, saldo - precio, datosC[1]);
+            EconomiaBD.actualizarEconomia(userId, saldo - precio, datosC[1]);
 
             // Crea un canal de texto que oculta la vista al rol @everyone y le da acceso total al comprador
-            event.getGuild().createTextChannel("🔒-búnker-de-" + event.getUser().getName())
+            Objects.requireNonNull(event.getGuild()).createTextChannel("🔒-búnker-de-" + event.getUser().getName())
                     .addRolePermissionOverride(event.getGuild().getPublicRole().getIdLong(), null, java.util.List.of(Permission.VIEW_CHANNEL))
-                    .addMemberPermissionOverride(event.getMember().getIdLong(), java.util.List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), null)
+                    .addMemberPermissionOverride(Objects.requireNonNull(event.getMember()).getIdLong(), java.util.List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), null)
                     .queue(channel -> ctx.responder("🔒 **¡Búnker Creado!** | Se ha abierto tu zona privada aquí: " + channel.getAsMention()));
         }
     }
@@ -105,15 +107,15 @@ public class ComandoComprar implements Comando {
                 if (suerte <= 65) { // 65% probabilidad: Pierdes o recuperas poco
                     premio = r.nextLong(100, 501);
                     frase = "🗑️ **Premio Común** | La caja contenía chatarra y **" + premio + " monedas**. ¡Mala suerte!";
-                    ConexionBD.getConexionBD().actualizarEconomia(userId, (saldo - precio) + premio, datosC[1]);
+                    EconomiaBD.actualizarEconomia(userId, (saldo - precio) + premio, datosC[1]);
                 } else if (suerte <= 95) { // 30% probabilidad: Premio medio chulo
                     premio = r.nextLong(1500, 3001);
                     frase = "✨ **¡Premio Raro!** | ¡Qué bien! La caja ocultaba un saco con **" + premio + " monedas**.";
-                    ConexionBD.getConexionBD().actualizarEconomia(userId, (saldo - precio) + premio, datosC[1]);
+                   EconomiaBD.actualizarEconomia(userId, (saldo - precio) + premio, datosC[1]);
                 } else { // 5% probabilidad: El gordo de la lootbox
                     premio = 15000;
                     frase = "🔥 💎 **¡¡JACKPOT DE LA CAJA!!** 💎 🔥 | ¡Has destrozado las estadísticas! Te llevas **" + premio + " monedas**.";
-                    ConexionBD.getConexionBD().actualizarEconomia(userId, (saldo - precio) + premio, datosC[1]);
+                   EconomiaBD.actualizarEconomia(userId, (saldo - precio) + premio, datosC[1]);
                 }
 
                 ctx.responder("🎁 **Abriendo Caja Sorpresa...**\n" + frase);
@@ -132,14 +134,14 @@ public class ComandoComprar implements Comando {
              else {
                 try {
                     Color colorAsignar = Color.decode(colorHex);
-                    ConexionBD.getConexionBD().actualizarEconomia(userId, saldo - precio, datosC[1]);
+                    EconomiaBD.actualizarEconomia(userId, saldo - precio, datosC[1]);
 
                     // JDA crea el rol en el servidor y luego se lo inyecta al usuario
                     event.getGuild().createRole()
                             .setName(nombreRol)
                             .setColor(colorAsignar)
                             .queue(nuevoRol -> {
-                                event.getGuild().addRoleToMember(event.getMember(), nuevoRol).queue();
+                                event.getGuild().addRoleToMember(Objects.requireNonNull(event.getMember()), nuevoRol).queue();
                                 ctx.responder("🎭 **¡Rol de Autor Creado!** | Se ha creado e inyectado el rol **" + nombreRol + "** en tu perfil.");
                             });
                 } catch (NumberFormatException e) {
@@ -150,5 +152,13 @@ public class ComandoComprar implements Comando {
 
         else ctx.responder("❌ **Artículo No Encontrado** | Ese número no existe en el catálogo de la `/tienda`.");
 
+    }
+
+    @Override
+    public SlashCommandData getDatosComando() {
+        return Commands.slash("comprar", "Adquiere un artículo o servicio de la tienda de Chronos.")
+                .addOption(OptionType.INTEGER, "articulo", "El número del artículo que quieres comprar (1-9).", true)
+                .addOption(OptionType.STRING, "texto", "Nombre del rol personalizado o texto para el megáfono.", false)
+                .addOption(OptionType.STRING, "color", "Color en formato HEX (Ejemplo: #FF5733) para tu rol personalizado.", false);
     }
 }

@@ -1,6 +1,10 @@
 package aperez578.Notificaciones.Comandos;
 
 import aperez578.*;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 public class ComandoBorrar implements Comando {
 
@@ -8,9 +12,8 @@ public class ComandoBorrar implements Comando {
     public void ejecutar(ContextoComando ctx) {
         try {
             int idTarea = ctx.getParametroInt("id");
-            Tarea tarea=ConexionBD.getConexionBD().obtenerTareaPorId(idTarea);
+            Tarea tarea=NotificacionesBD.obtenerTareaPorId(idTarea);
             // Ejecutamos el borrado en la Base de Datos
-            boolean exito = ConexionBD.getConexionBD().borrarTarea(idTarea);
 
             if (tarea != null) {
                 GestorLogs.enviarLog(ctx, "Evento Eliminado Manualmente",
@@ -21,9 +24,16 @@ public class ComandoBorrar implements Comando {
              else ctx.responder("❌ Error: No se encontró ninguna tarea con ese ID.");
 
         } catch (Exception e) {
-            ctx.responder("❌ **Error:** El parámetro debe ser un número entero válido y obligatorio.\n" +
-                    "🔹 Uso con prefijo: `!EliminarTarea 5`\n" +
-                    "🔹 Uso con barra: `/eliminar-tarea id: 5`");
+            ctx.responder("""
+                    ❌ **Error:** El parámetro debe ser un número entero válido y obligatorio.
+                    🔹 Uso con prefijo: `!EliminarTarea 5`
+                    🔹 Uso con barra: `/eliminar-tarea id: 5`""");
         }
+    }
+
+    @Override
+    public SlashCommandData getDatosComando() {
+        return       Commands.slash("eliminar-tarea", "Elimina una tarea según su ID")
+                .addOptions(new OptionData(OptionType.INTEGER, "id", "El ID numérico del evento", true).setAutoComplete(true));
     }
 }

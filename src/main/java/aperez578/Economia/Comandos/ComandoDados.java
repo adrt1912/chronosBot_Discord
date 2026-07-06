@@ -1,8 +1,10 @@
 package aperez578.Economia.Comandos;
 
 import aperez578.Comando;
-import aperez578.ConexionBD;
 import aperez578.ContextoComando;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 import java.util.Random;
 
@@ -11,7 +13,7 @@ public class ComandoDados implements Comando {
     public void ejecutar(ContextoComando ctx) {
         String userId= ctx.getIdAutor();
         long cantidad = ctx.getParametroLong("cantidad");
-        long[] datosC= ConexionBD.getConexionBD().obtenerPerfilEconomia(userId);
+        long[] datosC= EconomiaBD.obtenerPerfilEconomia(userId);
         if(cantidad<=0) ctx.responder("❌ **Error de Apuesta** | La cantidad a arriesgar debe ser mayor que 0. ¡No intentes engañar a la banca!");
         else if(datosC[0]<cantidad) ctx.responder("💸 **Bancarrota** | No tienes suficientes monedas en tu cartera para realizar esta apuesta. ¡Ve a `/trabajar` primero!");
 
@@ -29,13 +31,19 @@ public class ComandoDados implements Comando {
                     "🤖 **Dados de Chronos:** " + dado1Juego + " + " + dado2Juego + " (Total: **" + totalJuego + "**)\n\n";
 
             if(totalJugador>totalJuego){
-                ConexionBD.getConexionBD().actualizarEconomia(userId,datosC[0]+cantidad,datosC[1]);
+                EconomiaBD.actualizarEconomia(userId,datosC[0]+cantidad,datosC[1]);
                 ctx.responder(resultadoDados + "🎉 ¡**Has ganado**! Te llevas **" + cantidad + "** monedas a casa.");
             }else if(totalJugador<totalJuego){
-                ConexionBD.getConexionBD().actualizarEconomia(userId,datosC[0]-cantidad,datosC[1]);
+                EconomiaBD.actualizarEconomia(userId,datosC[0]-cantidad,datosC[1]);
                 ctx.responder(resultadoDados + "📉 ¡**Has perdido**! Chronos se queda con tus **" + cantidad + "** monedas.");
             }
             else ctx.responder(resultadoDados + "🤝 **¡Empate!** Las puntuaciones son iguales. Recuperas tus monedas intactas.");
         }
+    }
+
+    @Override
+    public SlashCommandData getDatosComando() {
+        return  Commands.slash("dados", "Apuesta tus monedas en una partida de dados contra Chronos.")
+                .addOption(OptionType.INTEGER, "cantidad", "La cantidad de monedas que quieres apostar.", true);
     }
 }

@@ -1,9 +1,11 @@
 package aperez578.Notificaciones.Comandos;
 
 import aperez578.Comando;
-import aperez578.ConexionBD;
 import aperez578.ContextoComando;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+
 import java.awt.Color;
 import java.util.List;
 
@@ -14,10 +16,10 @@ public class ComandoMisEventos implements Comando {
         String userId = ctx.getIdAutor();
 
         // 🔍 Buscamos en la base de datos los eventos donde este usuario está apuntado
-        List<Tarea> misEventos = ConexionBD.getConexionBD().listarTareasAsistidas(userId);
+        List<Tarea> misEventos = NotificacionesBD.listarTareasAsistidas(userId);
 
         // 🛑 CASO A: Si la agenda está totalmente vacía
-        if (misEventos == null || misEventos.isEmpty()) {
+        if (misEventos.isEmpty()) {
             EmbedBuilder embedVacio = new EmbedBuilder()
                     .setTitle("📅 Tu Agenda Personal")
                     .setColor(Color.GRAY)
@@ -42,5 +44,10 @@ public class ComandoMisEventos implements Comando {
 
         // Enviamos la lista formateada de una sola vez editando el "Pensando..."
         ctx.responder(sb.toString());
+    }
+
+    @Override
+    public SlashCommandData getDatosComando() {
+        return  Commands.slash("mis-eventos", "Muestra tu agenda personal de eventos");
     }
 }

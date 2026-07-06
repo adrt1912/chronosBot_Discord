@@ -1,6 +1,5 @@
 package aperez578.Notificaciones.Comandos;
 
-import aperez578.ConexionBD;
 import aperez578.ContextoComando;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -12,7 +11,7 @@ public class GestorLogs {
     public static void enviarLog(ContextoComando ctx, String tituloAccion, String detalles) {
         String guildId = ctx.getGuildId();
 
-        String canalLogId = ConexionBD.getConexionBD().obtenerCanalAlertas(guildId);
+        String canalLogId = NotificacionesBD.obtenerCanalAlertas(guildId);
 
         // Si el servidor no ha configurado ningún canal de alertas todavía, ignoramos el log
         if (canalLogId == null || canalLogId.isEmpty()) return;

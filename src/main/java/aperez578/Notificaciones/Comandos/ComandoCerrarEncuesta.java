@@ -1,6 +1,10 @@
 package aperez578.Notificaciones.Comandos;
 
 import aperez578.*;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 import java.util.List;
 
@@ -11,16 +15,16 @@ public class ComandoCerrarEncuesta implements Comando {
         try {
             int idComand = ctx.getParametroInt("id");
 
-            Tarea tareaCambiar = ConexionBD.getConexionBD().obtenerTareaPorId(idComand);
+            Tarea tareaCambiar = NotificacionesBD.obtenerTareaPorId(idComand);
 
             if (tareaCambiar == null) {
                 ctx.responder("⚠️ **Error:** No existe ningún evento o encuesta activa con el ID `" + idComand + "`.");
                 return;
             }
 
-            // 📅 CASO 1: EVENTO COMUNITARIO (Botones de Asistencia)
+            //  CASO 1: EVENTO COMUNITARIO (Botones de Asistencia)
             if (tareaCambiar.getBotonesTipo() == 1) {
-                List<String> list = ConexionBD.getConexionBD().obtenerAsistentes(idComand);
+                List<String> list = NotificacionesBD.obtenerAsistentes(idComand);
                 long numAsistentes = list.size();
 
                 GestorLogs.enviarLog(ctx, "Calendario: Evento Finalizado y Cerrado",
@@ -31,13 +35,13 @@ public class ComandoCerrarEncuesta implements Comando {
                         "👥 **Asistentes totales:** " + numAsistentes + " personas.";
 
                 ctx.responder(texto);
-                ConexionBD.getConexionBD().borrarTarea(idComand);
+                NotificacionesBD.borrarTarea(idComand);
             }
 
             // 📊 CASO 2: ENCUESTA DE OPCIONES
             else if (tareaCambiar.getBotonesTipo() == 2) {
                 String[] opciones = tareaCambiar.getOpciones().split("\\|");
-                List<String> list = ConexionBD.getConexionBD().obtenerTodosLosVotos(idComand);
+                List<String> list = NotificacionesBD.obtenerTodosLosVotos(idComand);
                 int[] contadores = new int[opciones.length];
 
                 for (String voto : list) {
@@ -61,19 +65,26 @@ public class ComandoCerrarEncuesta implements Comando {
                         "📊 Se han clausurado las urnas para **" + tareaCambiar.getTitulo() + "** (ID: `" + idComand + "`).");
 
                 ctx.responder(sb.toString());
-                ConexionBD.getConexionBD().borrarTarea(idComand);
+                NotificacionesBD.borrarTarea(idComand);
             }
-            // ❌ CASO 3: SIN BOTONES (Solo aviso previo)
+            //  CASO 3: SIN BOTONES (Solo aviso previo)
             else {
                 ctx.responder("🗑️ El aviso del evento **" + tareaCambiar.getTitulo() + "** ha sido cerrado y retirado.");
-                ConexionBD.getConexionBD().borrarTarea(idComand);
+                NotificacionesBD.borrarTarea(idComand);
             }
 
         } catch (Exception e) {
-            // 🛡️ El escudo: Atrapa si ponen letras o si ejecutan el comando vacío
-            ctx.responder("❌ **Error:** Debes proporcionar un ID de evento numérico válido.\n" +
-                    "🔹 Con prefijo: `!Cerrar [ID]` (Ej: `!Cerrar 12`)\n" +
-                    "🔹 Con barra: `/cerrar id: [ID]`");
+            // Atrapa si ponen letras o si ejecutan el comando vacío
+            ctx.responder("""
+                    ❌ **Error:** Debes proporcionar un ID de evento numérico válido.
+                    🔹 Con prefijo: `!Cerrar [ID]` (Ej: `!Cerrar 12`)
+                    🔹 Con barra: `/cerrar id: [ID]`""");
         }
+    }
+
+    @Override
+    public SlashCommandData getDatosComando() {
+        return   Commands.slash("cerrar", "Cierra la encuesta de un evento, así no se registran más resultados")
+                .addOptions(new OptionData(OptionType.INTEGER, "id", "El ID numérico del evento", true).setAutoComplete(true));
     }
 }

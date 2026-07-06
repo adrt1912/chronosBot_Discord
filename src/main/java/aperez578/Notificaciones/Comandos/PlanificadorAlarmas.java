@@ -1,6 +1,5 @@
 package aperez578.Notificaciones.Comandos;
 
-import aperez578.ConexionBD;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -30,31 +29,30 @@ public class PlanificadorAlarmas {
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 long tiempoahora = Instant.now().getEpochSecond();
-                ConexionBD bd = ConexionBD.getConexionBD();
 
                 // 1️⃣ EMPIEZA YA
-                List<Tarea> tareaList = bd.tareasAvisar(tiempoahora - 300, tiempoahora);
+                List<Tarea> tareaList =NotificacionesBD.tareasAvisar(tiempoahora - 300, tiempoahora);
                 enviarAviso(tareaList, "🚨 **¡EL EVENTO EMPIEZA YA!** 🚨");
-                for (Tarea t : tareaList) bd.borrarTarea(t.getId());
+                for (Tarea t : tareaList) NotificacionesBD.borrarTarea(t.getId());
 
                 // 2️⃣ FALTA 1 HORA
-                List<Tarea> avisoUnaHora = bd.tareasAvisar(tiempoahora + 3600, tiempoahora + 3660);
+                List<Tarea> avisoUnaHora = NotificacionesBD.tareasAvisar(tiempoahora + 3600, tiempoahora + 3660);
                 enviarAviso(avisoUnaHora, "⏳ **Recordatorio: Falta 1 hora** ⏳");
 
                 // 3️⃣ FALTA 1 DÍA
-                List<Tarea> avisoUnDIa = bd.tareasAvisar(tiempoahora + 86400, tiempoahora + 86460);
+                List<Tarea> avisoUnDIa = NotificacionesBD.tareasAvisar(tiempoahora + 86400, tiempoahora + 86460);
                 enviarAviso(avisoUnDIa, "📅 **Recordatorio: Falta 1 día** 📅");
 
                 //recordatorios
-                List<RecordatorioObj> recordatoriosVencidos = ConexionBD.getConexionBD().obtenerRecordatoriosVencidos(tiempoahora);
+                List<RecordatorioObj> recordatoriosVencidos = NotificacionesBD.obtenerRecordatoriosVencidos(tiempoahora);
                 for (RecordatorioObj rec : recordatoriosVencidos) {
-                    TextChannel canal = jda.getTextChannelById(rec.getCanalid());
-                    if (canal != null) canal.sendMessage("🔔 <@" + rec.getUsuarioid() + "> **¡Recordatorio!**\n> " + rec.getMensaje()).queue();
+                    TextChannel canal = jda.getTextChannelById(rec.canalid());
+                    if (canal != null) canal.sendMessage("🔔 <@" + rec.usuarioid() + "> **¡Recordatorio!**\n> " + rec.mensaje()).queue();
                     // Lo borramos inmediatamente para que no se vuelva a repetir
-                    ConexionBD.getConexionBD().eliminarRecordatorio(rec.getId());
+                    NotificacionesBD.eliminarRecordatorio(rec.id());
                 }
             } catch (Throwable e) {
-                logger.info("⚠️ Error en el bucle de alarmas: " + e.getMessage());
+                logger.info("⚠️ Error en el bucle de alarmas: {}", e.getMessage());
             }
         }, 0, 1, TimeUnit.SECONDS);
 
@@ -68,7 +66,7 @@ public class PlanificadorAlarmas {
 
             if (canalOriginal != null) {
                 // 1. Buscamos si el servidor tiene un canal preferido global configurado
-                String canalConfiguradoId = ConexionBD.getConexionBD().obtenerCanalAlertas(canalOriginal.getGuild().getId());
+                String canalConfiguradoId = NotificacionesBD.obtenerCanalAlertas(canalOriginal.getGuild().getId());
                 TextChannel canalDeEnvio = canalOriginal; // Por defecto mandamos al original
 
                 // 2. Si hay un canal global configurado, desviamos el paquete allí

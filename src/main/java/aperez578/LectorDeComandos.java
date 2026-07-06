@@ -1,6 +1,8 @@
 package aperez578;
 
 import aperez578.Economia.Comandos.*;
+import aperez578.Experiencia.Comandos.ComandoRank;
+import aperez578.Experiencia.Comandos.ComandoTopXP;
 import aperez578.Notificaciones.Comandos.*;
 import aperez578.Utilidad.Comandos.ComandoAyuda;
 import aperez578.Utilidad.Comandos.ComandoClean;
@@ -9,6 +11,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 import java.awt.*;
 import java.time.Instant;
@@ -24,7 +27,7 @@ public class LectorDeComandos extends ListenerAdapter {
         comandos.put("ping", new ComandoPing());
         comandos.put("crear-notificacion", new ComandoCrearNotificacion());
         comandos.put("listar-notificaciones", new ComandoListar());
-        comandos.put("ayuda", new ComandoAyuda());
+        comandos.put("ayuda", new ComandoAyuda(this));
         comandos.put("eliminar-tarea", new ComandoBorrar());
         comandos.put("calendario", new ComandoCalendario());
         comandos.put("editar-notificacion", new ComandoEditarNotificacion());
@@ -45,13 +48,15 @@ public class LectorDeComandos extends ListenerAdapter {
         comandos.put("comprar",new ComandoComprar());
         comandos.put("clean",new ComandoClean());
         comandos.put("warn",new ComandoWarn());
+        comandos.put("rank",new ComandoRank());
+        comandos.put("topxp",new ComandoTopXP());
     }
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String idBoton = event.getComponentId();
 
-        // 🛡️ EL ESCUDO: Si el botón es del calendario, ignorarlo en esta clase (lo gestiona BotonesEventos)
+        //  Si el botón es del calendario, ignorarlo en esta clase (lo gestiona BotonesEventos)
         if (idBoton.startsWith("cal:")) {
             return;
         }
@@ -60,45 +65,38 @@ public class LectorDeComandos extends ListenerAdapter {
         String[] partest = idBoton.split("_");
         int id = Integer.parseInt(partest[partest.length - 1]);
 
-        if (ConexionBD.getConexionBD().obtenerTareaPorId(id) == null) {
+        if (NotificacionesBD.obtenerTareaPorId(id) == null) {
             event.reply("❌ Lo siento, este evento o encuesta ya ha finalizado.")
                     .setEphemeral(true)
                     .queue();
         } else {
             String userid = event.getUser().getId();
             String buttonid = event.getComponentId();
-            ConexionBD bd = ConexionBD.getConexionBD();
-            int idTarea = -1;
 
             // 📅 CASO 1: PULSAN "ASISTIR"
             if (buttonid.startsWith("asistir_")) {
-                idTarea = Integer.parseInt(buttonid.replace("asistir_", ""));
-                bd.apuntarseTarea(idTarea, userid, "SI");
+                NotificacionesBD.apuntarseTarea(id, userid, "SI");
                 event.deferEdit().queue();
             }
             // 🔄 CASO 2: PULSAN "NO ASISTIR"
             else if (buttonid.startsWith("desapuntarse_")) {
-                idTarea = Integer.parseInt(buttonid.replace("desapuntarse_", ""));
-                bd.desApuntareseEvento(idTarea, userid);
+                NotificacionesBD.desApuntareseEvento(id, userid);
                 event.deferEdit().queue();
             }
             // 📊 CASO 3: PULSAN UNA OPCIÓN DE LA ENCUESTA
             else if (buttonid.startsWith("voto_")) {
                 String[] partes = buttonid.split("_");
                 int indiceVoto = Integer.parseInt(partes[1]);
-                idTarea = Integer.parseInt(partes[2]);
 
-                bd.apuntarseTarea(idTarea, userid, String.valueOf(indiceVoto));
+                NotificacionesBD.apuntarseTarea(id, userid, String.valueOf(indiceVoto));
                 event.deferEdit().queue();
             }
-
-            if (idTarea != -1) actualizarTarjetaEnVivo(event, idTarea);
+            actualizarTarjetaEnVivo(event, id);
         }
     }
 
     private void actualizarTarjetaEnVivo (ButtonInteractionEvent event,int idTarea) {
-        ConexionBD bd = ConexionBD.getConexionBD();
-        Tarea tarea = bd.obtenerTareaPorId(idTarea);
+        Tarea tarea = NotificacionesBD.obtenerTareaPorId(idTarea);
 
         if (tarea != null) {
             long ts = tarea.getTimestamp();
@@ -113,7 +111,7 @@ public class LectorDeComandos extends ListenerAdapter {
 
             if (tarea.getBotonesTipo() == 1) {
                 nuevoEmbed.setColor(Color.GREEN);
-                List<String> asistentes = bd.obtenerAsistentes(idTarea);
+                List<String> asistentes = NotificacionesBD.obtenerAsistentes(idTarea);
 
                 if (asistentes.isEmpty())
                     nuevoEmbed.addField("👥 Asistentes (0):", "*Nadie se ha apuntado todavía...*", false);
@@ -127,7 +125,7 @@ public class LectorDeComandos extends ListenerAdapter {
             } else if (tarea.getBotonesTipo() == 2) {
                 nuevoEmbed.setColor(new Color(0x3498db));
                 String[] opciones = tarea.getOpciones().split("\\|");
-                List<String> todosLosVotos = bd.obtenerTodosLosVotos(idTarea);
+                List<String> todosLosVotos = NotificacionesBD.obtenerTodosLosVotos(idTarea);
 
                 nuevoEmbed.setDescription("📊 **Resultados de la encuesta actualizados:**");
 
@@ -147,5 +145,17 @@ public class LectorDeComandos extends ListenerAdapter {
         Comando comando = comandos.get(nombreComando.toLowerCase());
         if (comando != null) comando.ejecutar(new ContextoComando(event));
         else event.reply("❌ Comando no implementado en el sistema central.").setEphemeral(true).queue();
+    }
+
+    public List<SlashCommandData> getListaComandData() {
+        List<SlashCommandData> lista = new java.util.ArrayList<>();
+        // Recorremos todos los comandos que has registrado en tu mapa con .put()
+        for (Comando cmd : comandos.values()) {
+            lista.add(cmd.getDatosComando());
+        }
+        return lista;
+    }
+    public Map<String, Comando> getMapComandos() {
+        return comandos;
     }
 }

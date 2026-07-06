@@ -19,7 +19,6 @@ public class ContextoComando {
     // Constructor para cuando se usa "/"
     public ContextoComando(SlashCommandInteractionEvent event) {
         this.eventSlash = event;
-        event.deferReply().queue();
     }
 
     public ContextoComando(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
@@ -41,8 +40,9 @@ public class ContextoComando {
     }
 
     //  Para obtener un número entero (como el ID del evento)
-    public int getParametroInt( String nombreSlash) {
-            return Objects.requireNonNull(eventSlash.getOption(nombreSlash)).getAsInt();
+    public int getParametroInt(String nombreSlash) {
+        var opcion = eventSlash.getOption(nombreSlash);
+        return (opcion != null) ? opcion.getAsInt() : -1;
     }
 
     //  Para obtener texto (como el título o la fecha)

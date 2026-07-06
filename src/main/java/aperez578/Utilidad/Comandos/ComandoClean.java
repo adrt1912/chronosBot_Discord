@@ -4,6 +4,9 @@ import aperez578.Comando;
 import aperez578.ContextoComando;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 import java.util.Objects;
 
@@ -34,5 +37,11 @@ public class ComandoClean implements Comando {
 
             }, _ -> event.getHook().sendMessage("❌ Hubo un error al intentar recuperar los mensajes del historial.").queue());
         }
+    }
+
+    @Override
+    public SlashCommandData getDatosComando() {
+        return Commands.slash("clean", "Borra una cantidad determinada de mensajes del canal actual.")
+                .addOption(OptionType.INTEGER, "cantidad", "Número de mensajes a borrar (1-100).", true);
     }
 }

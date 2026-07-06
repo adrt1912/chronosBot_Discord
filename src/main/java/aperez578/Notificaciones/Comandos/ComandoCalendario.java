@@ -1,9 +1,11 @@
 package aperez578.Notificaciones.Comandos;
 
 import aperez578.Comando;
-import aperez578.ConexionBD;
 import aperez578.ContextoComando;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
@@ -38,9 +40,15 @@ public class ComandoCalendario implements Comando {
         enviarPaginaCalendario(ctx, tareaList, 0, filtro);
     }
 
-    // 🌟 MÉTODO MAESTRO: Filtra las tareas de forma idéntica para el comando y los botones
+    @Override
+    public SlashCommandData getDatosComando() {
+        return   Commands.slash("calendario", "Muestra los próximos eventos del servidor")
+                .addOption(OptionType.STRING, "filtro", "Filtra por: hoy, semana, mes o el título del evento (Opcional)", false);
+    }
+
+    //  Filtra las tareas de forma idéntica para el comando y los botones
     public static List<Tarea> obtenerTareasFiltradas(String channelId, String filtro) {
-        List<Tarea> lista = ConexionBD.getConexionBD().listarTareasServer(channelId);
+        List<Tarea> lista = NotificacionesBD.listarTareasServer(channelId);
         lista = lista.stream()
                 .sorted(Comparator.comparing(Tarea::getFecha).thenComparing(Tarea::getHora))
                 .toList();

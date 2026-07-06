@@ -4,6 +4,10 @@ import aperez578.Comando;
 import aperez578.ConexionBD;
 import aperez578.ContextoComando;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 import java.awt.Color;
 import java.time.LocalDateTime;
@@ -17,9 +21,8 @@ public class ComandoEditarNotificacion implements Comando {
 
     @Override
     public void ejecutar(ContextoComando ctx) {
-        ConexionBD conexionBD = ConexionBD.getConexionBD();
 
-        // 📥 Extraemos los parámetros nativos de Discord directamente
+        //  Extraemos los parámetros nativos de Discord directamente
         int id = ctx.getParametroInt("id");
         boolean tieneTitulo = ctx.tieneOpcion("titulo");
         boolean tieneFecha = ctx.tieneOpcion("fecha_hora");
@@ -35,7 +38,7 @@ public class ComandoEditarNotificacion implements Comando {
             // 📝 MÓDULO 1: EDITAR TÍTULO
             if (tieneTitulo) {
                 String nuevoTitulo = ctx.getParametroString("titulo").trim();
-                if (conexionBD.actualizarTitulo(id, nuevoTitulo)) {
+                if (NotificacionesBD.actualizarTitulo(id, nuevoTitulo)) {
                     descripcionCambios.append("📝 **Nuevo título:** ").append(nuevoTitulo).append("\n");
                     exitoModificacion = true;
                 }
@@ -48,7 +51,7 @@ public class ComandoEditarNotificacion implements Comando {
                     LocalDateTime fechaConvertida = LocalDateTime.parse(fechaTexto, formateador);
                     long nuevoTimestamp = fechaConvertida.atZone(ZoneId.systemDefault()).toEpochSecond();
 
-                    if (conexionBD.actualizarTiempo(id, nuevoTimestamp)) {
+                    if (NotificacionesBD.actualizarTiempo(id, nuevoTimestamp)) {
                         // Aprovechamos tu formato premium de marcas de tiempo relativas
                         descripcionCambios.append("⏰ **Nuevo horario:** <t:").append(nuevoTimestamp).append(":F> (<t:").append(nuevoTimestamp).append(":R>)\n");
                         exitoModificacion = true;
@@ -65,7 +68,7 @@ public class ComandoEditarNotificacion implements Comando {
                 if (exitoModificacion) {
                     embed.setTitle("✅ Evento ID `" + id + "` Actualizado")
                             .setColor(Color.GREEN)
-                            .setDescription("Se han aplicado los siguientes cambios con éxito:\n\n" + descripcionCambios.toString());
+                            .setDescription("Se han aplicado los siguientes cambios con éxito:\n\n" + descripcionCambios);
                     ctx.responderEmbed(embed.build());
                 } else {
                     embed.setTitle("❌ Error de Edición")
@@ -75,5 +78,13 @@ public class ComandoEditarNotificacion implements Comando {
                 }
             }
         }
+    }
+
+    @Override
+    public SlashCommandData getDatosComando() {
+        return  Commands.slash("editar-notificacion", "Permite modificar un evento o encuesta existente")
+                .addOptions(new OptionData(OptionType.INTEGER, "id", "El ID numérico del evento", true).setAutoComplete(true))
+                .addOptions(new OptionData(OptionType.STRING, "titulo", "Nuevo título para el evento (Opcional)", false).setAutoComplete(true))
+                .addOptions(new OptionData(OptionType.STRING, "fecha_hora", "Nueva fecha/hora: DD/MM/AAAA HH:MM (Opcional)", false).setAutoComplete(true));
     }
 }

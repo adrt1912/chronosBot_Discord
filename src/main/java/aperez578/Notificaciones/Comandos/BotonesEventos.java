@@ -67,8 +67,6 @@ public class BotonesEventos extends ListenerAdapter {
                 return;
             }
 
-            aperez578.ContextoComando contextoFalso = new aperez578.ContextoComando(event);
-
             Tarea tarea = tareas.get(nuevaPagina);
             int total = tareas.size();
 
