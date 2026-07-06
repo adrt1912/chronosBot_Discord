@@ -54,9 +54,7 @@ public class PlanificadorAlarmas {
             } catch (Throwable e) {
                 logger.info("⚠️ Error en el bucle de alarmas: {}", e.getMessage());
             }
-        }, 0, 1, TimeUnit.SECONDS);
-
-
+        }, 0, 2, TimeUnit.SECONDS);
     }
 
     public void enviarAviso(List<Tarea> tareas, String text) {

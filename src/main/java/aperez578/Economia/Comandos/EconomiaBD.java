@@ -9,7 +9,6 @@ import java.util.LinkedHashMap;
 
 public class EconomiaBD {
 
-
     private static final Logger logger = LoggerFactory.getLogger(EconomiaBD.class);
 
     public static long[] obtenerPerfilEconomia(String userId) {

@@ -52,6 +52,6 @@ public class ComandoTopXP implements Comando {
 
     @Override
     public SlashCommandData getDatosComando() {
-        return                             Commands.slash("topxp", "Muestra el Top 10 de los usuarios con más nivel y XP del servidor.");
+        return Commands.slash("topxp", "Muestra el Top 10 de los usuarios con más nivel y XP del servidor.");
     }
 }

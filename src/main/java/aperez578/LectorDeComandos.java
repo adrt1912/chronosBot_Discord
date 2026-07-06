@@ -57,9 +57,7 @@ public class LectorDeComandos extends ListenerAdapter {
         String idBoton = event.getComponentId();
 
         //  Si el botón es del calendario, ignorarlo en esta clase (lo gestiona BotonesEventos)
-        if (idBoton.startsWith("cal:")) {
-            return;
-        }
+        if (idBoton.startsWith("cal:")) return;
 
         // A partir de aquí tu lógica de siempre procesará los botones de asistencia y encuestas de forma segura
         String[] partest = idBoton.split("_");
@@ -73,17 +71,17 @@ public class LectorDeComandos extends ListenerAdapter {
             String userid = event.getUser().getId();
             String buttonid = event.getComponentId();
 
-            // 📅 CASO 1: PULSAN "ASISTIR"
+            // CASO 1: PULSAN "ASISTIR"
             if (buttonid.startsWith("asistir_")) {
                 NotificacionesBD.apuntarseTarea(id, userid, "SI");
                 event.deferEdit().queue();
             }
-            // 🔄 CASO 2: PULSAN "NO ASISTIR"
+            // CASO 2: PULSAN "NO ASISTIR"
             else if (buttonid.startsWith("desapuntarse_")) {
                 NotificacionesBD.desApuntareseEvento(id, userid);
                 event.deferEdit().queue();
             }
-            // 📊 CASO 3: PULSAN UNA OPCIÓN DE LA ENCUESTA
+            // CASO 3: PULSAN UNA OPCIÓN DE LA ENCUESTA
             else if (buttonid.startsWith("voto_")) {
                 String[] partes = buttonid.split("_");
                 int indiceVoto = Integer.parseInt(partes[1]);
@@ -113,8 +111,7 @@ public class LectorDeComandos extends ListenerAdapter {
                 nuevoEmbed.setColor(Color.GREEN);
                 List<String> asistentes = NotificacionesBD.obtenerAsistentes(idTarea);
 
-                if (asistentes.isEmpty())
-                    nuevoEmbed.addField("👥 Asistentes (0):", "*Nadie se ha apuntado todavía...*", false);
+                if (asistentes.isEmpty()) nuevoEmbed.addField("👥 Asistentes (0):", "*Nadie se ha apuntado todavía...*", false);
                 else {
                     StringBuilder sb = new StringBuilder();
                     for (String userId : asistentes) {
@@ -155,6 +152,7 @@ public class LectorDeComandos extends ListenerAdapter {
         }
         return lista;
     }
+
     public Map<String, Comando> getMapComandos() {
         return comandos;
     }

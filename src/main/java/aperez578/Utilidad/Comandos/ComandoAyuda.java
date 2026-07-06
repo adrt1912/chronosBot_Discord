@@ -15,7 +15,7 @@ public class ComandoAyuda implements Comando {
 
     private final LectorDeComandos lector;
 
-    // 🔌 Guardamos la referencia al lector de comandos central
+    // Guardamos la referencia al lector de comandos central
     public ComandoAyuda(LectorDeComandos lector) {
         this.lector = lector;
     }
@@ -27,7 +27,7 @@ public class ComandoAyuda implements Comando {
                 .setColor(new Color(0x3498db)) // Azul Chronos
                 .setDescription("¡Hola! Aquí tienes la guía de comandos automatizada. Ya no necesitas usar el prefijo `!`, ahora todos funcionan escribiendo **`/`** en el chat.\n\n");
 
-        //  Preparamos los contenedores de las categorías en el orden en que queremos que salgan
+        // Preparamos los contenedores de las categorías en el orden en que queremos que salgan
         Map<String, StringBuilder> categorias = new LinkedHashMap<>();
         categorias.put("Notificaciones", new StringBuilder("📅 **NOTIFICACIONES Y EVENTOS**\n"));
         categorias.put("Economia", new StringBuilder("💰 **ECONOMÍA Y BIFURCACIONES**\n"));
@@ -57,9 +57,7 @@ public class ComandoAyuda implements Comando {
         // Construimos el cuerpo del Embed pegando solo las secciones que tengan comandos activos
         for (StringBuilder sb : categorias.values()) {
             // Contamos las líneas: si tiene más de una, significa que tiene comandos dentro y no solo el título
-            if (sb.toString().lines().count() > 1) {
-                embed.appendDescription(sb + "\n");
-            }
+            if (sb.toString().lines().count() > 1) embed.appendDescription(sb + "\n");
         }
 
         embed.setFooter("Chronos Bot • Actualizado automáticamente", ctx.getJDA().getSelfUser().getAvatarUrl())

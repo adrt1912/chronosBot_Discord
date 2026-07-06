@@ -28,7 +28,6 @@ public class ComandoTrabajar implements Comando {
             if (exito) ctx.responder("💰 Has trabajado duro y has ganado **" + beneficioTrabajo + " monedas**. Ahora tienes un total de **" + nuevasMonedas + " monedas**.");
             else ctx.responder("❌ Hubo un error al procesar tu salario en el banco central.");
         }
-
     }
 
     @Override

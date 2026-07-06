@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 public class ComandoBalance implements Comando {
     @Override
     public void ejecutar(ContextoComando ctx) {
-
         String userID= ctx.getIdAutor();
         long[] datos= EconomiaBD.obtenerPerfilEconomia(userID);
         ctx.responder("💰 **Banco de Chronos** | Tienes un total de **" + datos[0] + "** monedas resguardadas en tu cuenta.");    }

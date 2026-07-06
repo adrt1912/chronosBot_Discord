@@ -32,7 +32,6 @@ public class ComandoRecordatorio implements Comando {
             boolean guardado=NotificacionesBD.guardarRecordatorio(ctx.getIdAutor(), ctx.getChanelId(), mensaje,timestampFuturo);
             if(guardado) ctx.responder("✅ ¡Recordatorio programado! Te avisaré por aquí a las <t:" + timestampFuturo + ":T>.");
             else ctx.responder("❌ Hubo un error interno al intentar programar el recordatorio.");
-
         }else ctx.responder("⚠️ El tiempo debe ser mayor que cero.");
     }
 

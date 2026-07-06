@@ -35,7 +35,6 @@ public class ComandoCalendario implements Comando {
             ctx.responderEmbed(embedVacio.build());
             return;
         }
-
         // Renderizamos la primera página (índice 0)
         enviarPaginaCalendario(ctx, tareaList, 0, filtro);
     }
@@ -72,7 +71,7 @@ public class ComandoCalendario implements Comando {
         }
     }
 
-    // 🖼️ GESTOR DE DISEÑO: Construye el mensaje con el Embed y las dos filas de botones
+    // GESTOR DE DISEÑO: Construye el mensaje con el Embed y las dos filas de botones
     public static void enviarPaginaCalendario(ContextoComando ctx, List<Tarea> tareas, int pagina, String filtro) {
         Tarea tarea = tareas.get(pagina);
         int total = tareas.size();

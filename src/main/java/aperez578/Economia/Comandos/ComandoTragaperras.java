@@ -18,7 +18,6 @@ public class ComandoTragaperras implements Comando {
         else if(datosC[0]<cantidad) ctx.responder("💸 **Bancarrota** | No tienes suficientes monedas en tu cartera para realizar esta apuesta. ¡Ve a `/trabajar` primero!");
         else{
             String[] emojis = {"🍎", "🍌", "🍒", "🍉", "💎"};
-
             Random random=new Random();
             int pos1= random.nextInt(0,5);
             String e1=emojis[pos1];
@@ -34,7 +33,6 @@ public class ComandoTragaperras implements Comando {
                     " ║  " + e1 + " | " + e2 + " | " + e3 + "  ║\n" +
                     " ╚═════════╝\n\n";
             if(pos1==pos2&& pos1==pos3){
-
                 EconomiaBD.actualizarEconomia(userId,datosC[0]+cantidad*3,datosC[1]);
                 ctx.responder(rodillos + "🎉 ✨ **¡¡JACKPOT ENORME!!** ✨ 🎉\n" +
                         " Han coincidido los tres rodillos. Te llevas un premio gordo de **" + cantidad*3 + "** monedas. 💰");

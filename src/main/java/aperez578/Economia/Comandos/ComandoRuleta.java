@@ -20,7 +20,6 @@ public class ComandoRuleta implements Comando {
         if(cantidad<=0) ctx.responder("❌ **Error de Apuesta** | La cantidad a arriesgar debe ser mayor que 0. ¡No intentes engañar a la banca!");
         else if(datosC[0]<cantidad) ctx.responder("💸 **Bancarrota** | No tienes suficientes monedas en tu cartera para realizar esta apuesta. ¡Ve a `/trabajar` primero!");
         else{
-
             Random random=new Random();
             int numA= random.nextInt(0,1001);
             if(numA<495) ganadorColor="rojo";
@@ -45,7 +44,7 @@ public class ComandoRuleta implements Comando {
 
     @Override
     public SlashCommandData getDatosComando() {
-        return                            Commands.slash("ruleta", "Prueba tu suerte en la ruleta del casino apostando tus monedas.")
+        return Commands.slash("ruleta", "Prueba tu suerte en la ruleta del casino apostando tus monedas.")
                 .addOption(OptionType.INTEGER, "cantidad", "La cantidad de monedas que quieres arriesgar.", true)
                 .addOptions(new net.dv8tion.jda.api.interactions.commands.build.OptionData(OptionType.STRING, "color", "El color al que quieres apostar.", true)
                         .addChoice("Rojo 🔴", "rojo")

@@ -10,7 +10,7 @@ public class ComandoConfigurar implements Comando {
 
     @Override
     public void ejecutar(ContextoComando ctx) {
-        // 🌟 Buscamos el canal: si es '!', lo busca en el texto. Si es '/', busca la opción "canal"
+        //  Buscamos el canal: si es '!', lo busca en el texto. Si es '/', busca la opción "canal"
         GuildChannel canalMencionado = ctx.getParametroCanal("canal");
 
         // Verificamos si el usuario se ha olvidado de poner el canal

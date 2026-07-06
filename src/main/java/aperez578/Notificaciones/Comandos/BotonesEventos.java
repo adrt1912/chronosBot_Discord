@@ -48,7 +48,7 @@ public class BotonesEventos extends ListenerAdapter {
         }
     }
 
-    @Override // ⚡ ¡Ahora IntelliJ ya sabe qué estás sobrescribiendo y no dará error!
+    @Override // ¡Ahora IntelliJ ya sabe qué estás sobrescribiendo y no dará error!
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String buttonId = event.getComponentId();
 

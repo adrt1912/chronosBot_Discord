@@ -1,7 +1,6 @@
 package aperez578.Notificaciones.Comandos;
 
 import aperez578.Comando;
-import aperez578.ConexionBD;
 import aperez578.ContextoComando;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -21,7 +20,6 @@ public class ComandoEditarNotificacion implements Comando {
 
     @Override
     public void ejecutar(ContextoComando ctx) {
-
         //  Extraemos los parámetros nativos de Discord directamente
         int id = ctx.getParametroInt("id");
         boolean tieneTitulo = ctx.tieneOpcion("titulo");
@@ -29,13 +27,12 @@ public class ComandoEditarNotificacion implements Comando {
 
         if (!tieneTitulo && !tieneFecha) ctx.responder("⚠️ **Error:** Debes rellenar al menos uno de los campos opcionales (`titulo` o `fecha_hora`) para poder editar el evento.");
         else {
-
             EmbedBuilder embed = new EmbedBuilder().setTimestamp(java.time.Instant.now());
             StringBuilder descripcionCambios = new StringBuilder();
             boolean exitoModificacion = false;
             boolean huboErrorFecha = false;
 
-            // 📝 MÓDULO 1: EDITAR TÍTULO
+            // MÓDULO 1: EDITAR TÍTULO
             if (tieneTitulo) {
                 String nuevoTitulo = ctx.getParametroString("titulo").trim();
                 if (NotificacionesBD.actualizarTitulo(id, nuevoTitulo)) {
@@ -44,7 +41,7 @@ public class ComandoEditarNotificacion implements Comando {
                 }
             }
 
-            // 📅 MÓDULO 2: EDITAR FECHA Y HORA
+            // MÓDULO 2: EDITAR FECHA Y HORA
             if (tieneFecha) {
                 String fechaTexto = ctx.getParametroString("fecha_hora").trim();
                 try {
@@ -61,7 +58,7 @@ public class ComandoEditarNotificacion implements Comando {
                 }
             }
 
-            // 🚨 GESTIÓN DE RESPUESTAS E INFORMES
+            //  GESTIÓN DE RESPUESTAS E INFORMES
             if (huboErrorFecha)
                 ctx.responder("❌ **Fecha u hora inválida**. Usa el formato exacto: `DD/MM/YYYY HH:MM` (Ej: `15/07/2026 18:30`)");
             else {

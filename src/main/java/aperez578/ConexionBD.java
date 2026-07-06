@@ -1,13 +1,9 @@
 package aperez578;
 
-import aperez578.Notificaciones.Comandos.RecordatorioObj;
-import aperez578.Notificaciones.Comandos.Tarea;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConexionBD {
 
@@ -21,7 +17,6 @@ public class ConexionBD {
         if (conexionBD == null) conexionBD = new ConexionBD();
         return conexionBD;
     }
-
 
     public Connection obtenerConexion() throws SQLException {
         Connection c = DriverManager.getConnection(URL);
@@ -109,5 +104,4 @@ public class ConexionBD {
             logger.info("Error al crear alguna tabla: {}", e.getMessage());
         }
     }
-
 }

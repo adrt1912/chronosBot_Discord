@@ -49,13 +49,12 @@ public class ContextoComando {
     public String getParametroString( String nombreSlash) {
             var opcion = eventSlash.getOption(nombreSlash);
             return (opcion != null) ? opcion.getAsString() : null;
-
     }
 
     public void responderEmbed(net.dv8tion.jda.api.entities.MessageEmbed embed) {
         if (eventSlash != null) eventSlash.getHook().editOriginalEmbeds(embed).queue();
          else if (eventoBoton != null) eventoBoton.replyEmbeds(embed).queue();
-        }
+    }
 
     public String getChanelId(){
         return (eventSlash!=null) ? eventSlash.getChannelId() : eventoBoton.getChannelId();
@@ -74,7 +73,6 @@ public class ContextoComando {
     public GuildChannel getParametroCanal(String nombreSlash) {
             var opcion = eventSlash.getOption(nombreSlash);
             return (opcion != null) ? opcion.getAsChannel() : null;
-
     }
     public String getGuildId() {
         return (eventSlash!=null)? Objects.requireNonNull(eventSlash.getGuild()).getId() :  Objects.requireNonNull(eventoBoton.getGuild()).getId();

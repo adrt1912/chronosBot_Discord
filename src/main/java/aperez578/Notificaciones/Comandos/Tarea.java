@@ -4,15 +4,15 @@ import java.time.*;
 
 public class Tarea {
     private int id;
-    private String titulo;
-    private LocalDate fecha;
-    private LocalTime hora;
-    private String userID;
-    private String canalID;
-    private String rol_id;
-    private int botonesTipo;
-    private String opciones;
-    private long timestamp;
+    private final String titulo;
+    private final LocalDate fecha;
+    private final LocalTime hora;
+    private final String userID;
+    private final String canalID;
+    private final String rol_id;
+    private final int botonesTipo;
+    private final String opciones;
+    private final long timestamp;
 
     public Tarea(String titulo, long timestamp, String userID, String canalID, int id, String rolId,int botonTipo,String opciones){
         this.titulo=titulo;
@@ -74,44 +74,8 @@ public class Tarea {
         return timestamp;
     }
 
-    public void setCanalID(String canalID) {
-        this.canalID = canalID;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
-    }
-
-    public void setHora(LocalTime hora) {
-        this.hora = hora;
-    }
-
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
-
-    public void setUserID(String userID) {
-        this.userID = userID;
-    }
-
     public void setId(int id) {
         this.id = id;
-    }
-
-    public void setRol_id(String rol_id) {
-        this.rol_id = rol_id;
-    }
-
-    public void setBotonesTipo(int botonesTipo) {
-        this.botonesTipo = botonesTipo;
-    }
-
-    public void setOpciones(String opciones) {
-        this.opciones = opciones;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
     }
 
     @Override

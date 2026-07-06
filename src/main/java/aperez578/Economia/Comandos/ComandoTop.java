@@ -30,16 +30,13 @@ public class ComandoTop implements Comando {
                 else emojiPuesto = "⭐ `# " + puesto + "`";
 
                 sb.append(emojiPuesto).append("| <@").append(userId).append("> - **").append(monedas).append("** monedas\n");
-
                 puesto++;
             }
             sb.append("\n---------------------------------------------------");
 
             // 4. Enviamos el ranking completo
             ctx.responder(sb.toString());
-
         }
-
     }
 
     @Override
@@ -47,4 +44,3 @@ public class ComandoTop implements Comando {
         return  Commands.slash("top", "Muestra el top 10 de los usuarios más ricos del servidor.");
     }
 }
-

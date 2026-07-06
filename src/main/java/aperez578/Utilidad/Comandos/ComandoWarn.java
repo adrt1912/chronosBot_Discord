@@ -1,9 +1,7 @@
 package aperez578.Utilidad.Comandos;
 
 import aperez578.Comando;
-import aperez578.ConexionBD;
 import aperez578.ContextoComando;
-import aperez578.Notificaciones.Comandos.NotificacionesBD;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -15,6 +13,7 @@ import java.time.Duration;
 import java.util.Objects;
 
 public class ComandoWarn implements Comando {
+
     @Override
     public void ejecutar(ContextoComando ctx) {
         SlashCommandInteractionEvent event = ctx.getEventSlash();
@@ -35,7 +34,7 @@ public class ComandoWarn implements Comando {
                     String guildId = event.getGuild().getId();
 
                     // Guardamos en la BD y el metodo nos devuelve el total de avisos acumulados
-                    int totalWarns = NotificacionesBD.registrarAdvertencia(targetId, guildId, razon, modId);
+                    int totalWarns = UtilidadBD.registrarAdvertencia(targetId, guildId, razon, modId);
 
                     StringBuilder respuesta = new StringBuilder();
                     respuesta.append("⚠️ **¡Usuario Advertido!** ⚠️\n")
@@ -49,7 +48,7 @@ public class ComandoWarn implements Comando {
                             // Le metemos un timeout de 1 hora
                             objetivo.timeoutFor(Duration.ofHours(1)).reason("Acumulación de 3 advertencias").queue();
                             respuesta.append("\n🛑 **¡Castigo Aplicado!** El usuario ha alcanzado el límite de avisos y ha sido aislado durante 1 hora.");
-                            NotificacionesBD.resetarAdvertencias(targetId,guildId);
+                            UtilidadBD.resetarAdvertencias(targetId,guildId);
                         } else respuesta.append("\n⚠️ *El bot no tiene el permiso `Moderar Miembros` para aplicar el aislamiento automático.*");
                     }
                     ctx.responder(respuesta.toString());

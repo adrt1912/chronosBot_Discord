@@ -77,13 +77,12 @@ public class ComandoComprar implements Comando {
             }
         }
 
-        // 🔒 CASO 7: Canal Privado (30,000 monedas)
+        // CASO 7: Canal Privado (3,000,000 monedas)
         else if (articulo == 7) {
-            long precio = 30000;
+            long precio = 3000000;
             if (saldo < precio) ctx.responder("💸 **Fondos Insuficientes** | Crear tu búnker privado cuesta **" + precio + "** monedas. Te faltan **" + (precio - saldo) + "**.");
          else {
             EconomiaBD.actualizarEconomia(userId, saldo - precio, datosC[1]);
-
             // Crea un canal de texto que oculta la vista al rol @everyone y le da acceso total al comprador
             Objects.requireNonNull(event.getGuild()).createTextChannel("🔒-búnker-de-" + event.getUser().getName())
                     .addRolePermissionOverride(event.getGuild().getPublicRole().getIdLong(), null, java.util.List.of(Permission.VIEW_CHANNEL))
@@ -98,18 +97,17 @@ public class ComandoComprar implements Comando {
             if (saldo < precio)
                 ctx.responder("💸 **Fondos Insuficientes** | La Caja Sorpresa cuesta **" + precio + "** monedas.");
             else {
-
-                Random r = new Random();
-                int suerte = r.nextInt(1, 101); // Número del 1 al 100
+                Random random = new Random();
+                int suerte = random.nextInt(1, 101); // Número del 1 al 100
                 long premio;
                 String frase;
 
                 if (suerte <= 65) { // 65% probabilidad: Pierdes o recuperas poco
-                    premio = r.nextLong(100, 501);
+                    premio = random.nextLong(100, 501);
                     frase = "🗑️ **Premio Común** | La caja contenía chatarra y **" + premio + " monedas**. ¡Mala suerte!";
                     EconomiaBD.actualizarEconomia(userId, (saldo - precio) + premio, datosC[1]);
                 } else if (suerte <= 95) { // 30% probabilidad: Premio medio chulo
-                    premio = r.nextLong(1500, 3001);
+                    premio = random.nextLong(1500, 3001);
                     frase = "✨ **¡Premio Raro!** | ¡Qué bien! La caja ocultaba un saco con **" + premio + " monedas**.";
                    EconomiaBD.actualizarEconomia(userId, (saldo - precio) + premio, datosC[1]);
                 } else { // 5% probabilidad: El gordo de la lootbox
@@ -117,7 +115,6 @@ public class ComandoComprar implements Comando {
                     frase = "🔥 💎 **¡¡JACKPOT DE LA CAJA!!** 💎 🔥 | ¡Has destrozado las estadísticas! Te llevas **" + premio + " monedas**.";
                    EconomiaBD.actualizarEconomia(userId, (saldo - precio) + premio, datosC[1]);
                 }
-
                 ctx.responder("🎁 **Abriendo Caja Sorpresa...**\n" + frase);
             }
         }
@@ -149,9 +146,7 @@ public class ComandoComprar implements Comando {
                 }
             }
         }
-
         else ctx.responder("❌ **Artículo No Encontrado** | Ese número no existe en el catálogo de la `/tienda`.");
-
     }
 
     @Override

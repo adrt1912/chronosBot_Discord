@@ -14,24 +14,25 @@ public class GestorLogs {
         String canalLogId = NotificacionesBD.obtenerCanalAlertas(guildId);
 
         // Si el servidor no ha configurado ningún canal de alertas todavía, ignoramos el log
-        if (canalLogId == null || canalLogId.isEmpty()) return;
+        if (canalLogId != null && !canalLogId.isEmpty()) {
 
-        // Buscamos el canal en el servidor de Discord
-        TextChannel canal = ctx.getJDA().getTextChannelById(canalLogId);
-        if (canal != null) { // Si el bot no lo encuentra o no tiene permisos, salimos}
+            // Buscamos el canal en el servidor de Discord
+            TextChannel canal = ctx.getJDA().getTextChannelById(canalLogId);
+            if (canal != null) { // Si el bot no lo encuentra o no tiene permisos, salimos}
 
-            // Construimos el reporte gráfico de auditoría
-            EmbedBuilder embed = new EmbedBuilder()
-                    .setTitle("⚠️ [AUDITORÍA] " + tituloAccion)
-                    .setColor(Color.ORANGE) // Color naranja de advertencia
-                    .setDescription(detalles)
-                    .addField("👤 Moderador/Autor:", "<@" + ctx.getIdAutor() + ">", true)
-                    .addField("📅 Fecha del reporte:", "<t:" + (Instant.now().getEpochSecond()) + ":F>", false)
-                    .setFooter("Chronos Audit System", ctx.getJDA().getSelfUser().getAvatarUrl())
-                    .setTimestamp(Instant.now());
+                // Construimos el reporte gráfico de auditoría
+                EmbedBuilder embed = new EmbedBuilder()
+                        .setTitle("⚠️ [AUDITORÍA] " + tituloAccion)
+                        .setColor(Color.ORANGE) // Color naranja de advertencia
+                        .setDescription(detalles)
+                        .addField("👤 Moderador/Autor:", "<@" + ctx.getIdAutor() + ">", true)
+                        .addField("📅 Fecha del reporte:", "<t:" + (Instant.now().getEpochSecond()) + ":F>", false)
+                        .setFooter("Chronos Audit System", ctx.getJDA().getSelfUser().getAvatarUrl())
+                        .setTimestamp(Instant.now());
 
-            // Enviamos el log de forma silenciosa al canal de administración
-            canal.sendMessageEmbeds(embed.build()).queue();
+                // Enviamos el log de forma silenciosa al canal de administración
+                canal.sendMessageEmbeds(embed.build()).queue();
+            }
         }
     }
 }

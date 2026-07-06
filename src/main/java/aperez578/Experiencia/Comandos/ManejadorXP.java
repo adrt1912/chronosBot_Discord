@@ -53,12 +53,10 @@ public class ManejadorXP extends ListenerAdapter {
                 if (rol != null) {
                     // Evitamos dárselo si por algún motivo ya lo tiene
                     if (!event.getMember().getRoles().contains(rol)) {
-                        event.getGuild().addRoleToMember(event.getMember(), rol).queue(success -> {
+                        event.getGuild().addRoleToMember(event.getMember(), rol).queue(_ -> {
                             // Avisamos en el chat de que ha conseguido el rol con éxito
                             event.getChannel().sendMessage("🏅 **¡Rol Desbloqueado!** " + event.getAuthor().getAsMention() + " ha obtenido el rol honorífico **" + rol.getName() + "**.").queue();
-                        }, _ -> {
-                            System.out.println("❌ Error de permisos: El bot no tiene rango suficiente para otorgar el rol " + rol.getName());
-                        });
+                        }, _ -> System.out.println("❌ Error de permisos: El bot no tiene rango suficiente para otorgar el rol " + rol.getName()));
                     }
                 }
             }

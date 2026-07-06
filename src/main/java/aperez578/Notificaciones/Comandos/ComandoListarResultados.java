@@ -39,7 +39,6 @@ public class ComandoListarResultados implements Comando {
                     }
                     embed.addField("👥 Usuarios Confirmados (" + asistentesId.size() + "):", sb.toString(), false);
                 }
-
                 ctx.responderEmbed(embed.build());
             }
         } catch (Exception e) {

@@ -33,7 +33,7 @@ public class ComandoBorrar implements Comando {
 
     @Override
     public SlashCommandData getDatosComando() {
-        return       Commands.slash("eliminar-tarea", "Elimina una tarea según su ID")
+        return Commands.slash("eliminar-tarea", "Elimina una tarea según su ID")
                 .addOptions(new OptionData(OptionType.INTEGER, "id", "El ID numérico del evento", true).setAutoComplete(true));
     }
 }
