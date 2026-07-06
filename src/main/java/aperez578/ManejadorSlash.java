@@ -1,9 +1,11 @@
 package aperez578;
 
+import aperez578.Notificaciones.Comandos.Tarea;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -17,7 +19,7 @@ public class ManejadorSlash extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         // 🚀 Le mandamos el nombre del comando y el evento al despachador central
         lectorMensajes.despacharSlash(event.getName(), event);
     }

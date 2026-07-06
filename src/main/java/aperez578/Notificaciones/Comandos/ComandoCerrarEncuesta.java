@@ -1,4 +1,4 @@
-package aperez578.Comandos;
+package aperez578.Notificaciones.Comandos;
 
 import aperez578.*;
 

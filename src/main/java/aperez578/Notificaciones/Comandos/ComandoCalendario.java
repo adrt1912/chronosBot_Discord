@@ -1,9 +1,8 @@
-package aperez578.Comandos;
+package aperez578.Notificaciones.Comandos;
 
 import aperez578.Comando;
 import aperez578.ConexionBD;
 import aperez578.ContextoComando;
-import aperez578.Tarea;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;

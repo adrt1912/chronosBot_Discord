@@ -1,6 +1,10 @@
 package aperez578;
 
-import aperez578.Comandos.*;
+import aperez578.Economia.Comandos.*;
+import aperez578.Notificaciones.Comandos.*;
+import aperez578.Utilidad.Comandos.ComandoAyuda;
+import aperez578.Utilidad.Comandos.ComandoClean;
+import aperez578.Utilidad.Comandos.ComandoWarn;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -29,6 +33,18 @@ public class LectorDeComandos extends ListenerAdapter {
         comandos.put("mis-eventos",new ComandoMisEventos());
         comandos.put("listar-resultados",new ComandoListarResultados());
         comandos.put("recordatorio",new ComandoRecordatorio());
+        comandos.put("trabajar",new ComandoTrabajar());
+        comandos.put("balance",new ComandoBalance());
+        comandos.put("ruleta",new ComandoRuleta());
+        comandos.put("robar",new ComandoRobar());
+        comandos.put("top",new ComandoTop());
+        comandos.put("transferir",new ComandoTransferir());
+        comandos.put("dados",new ComandoDados());
+        comandos.put("tragaperras",new ComandoTragaperras());
+        comandos.put("tienda",new ComandoTienda());
+        comandos.put("comprar",new ComandoComprar());
+        comandos.put("clean",new ComandoClean());
+        comandos.put("warn",new ComandoWarn());
     }
 
     @Override

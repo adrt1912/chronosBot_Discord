@@ -1,4 +1,4 @@
-package aperez578;
+package aperez578.Notificaciones.Comandos;
 
 public class RecordatorioObj {
 

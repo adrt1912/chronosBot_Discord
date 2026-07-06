@@ -1,11 +1,13 @@
 package aperez578;
 
+import aperez578.Notificaciones.Comandos.RecordatorioObj;
+import aperez578.Notificaciones.Comandos.Tarea;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class ConexionBD {
@@ -21,7 +23,6 @@ public class ConexionBD {
         return conexionBD;
     }
 
-    private DateTimeFormatter formateador = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private Connection obtenerConexion() throws SQLException {
         Connection c = DriverManager.getConnection(URL);
@@ -44,7 +45,6 @@ public class ConexionBD {
                 "opciones TEXT" +
                 ");";
 
-        // 🌟 CORREGIDO: Mismos nombres de columna que usan el INSERT, SELECT y DELETE
         String sqlRecordatorio = "CREATE TABLE IF NOT EXISTS Recordatorios (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "usuario_id TEXT NOT NULL, " +
@@ -67,15 +67,35 @@ public class ConexionBD {
                 "FOREIGN key (tarea_id) references Evento(id) ON DELETE CASCADE" +
                 ")";
 
+        String sqlEconomia = "CREATE TABLE IF NOT EXISTS Economia (" +
+                "usuario_id TEXT PRIMARY KEY, " +
+                "monedas INTEGER DEFAULT 0, " +
+                "ultimo_trabajo LONG DEFAULT 0" +
+                ");";
+
+        String sqlAdvertencias = "CREATE TABLE IF NOT EXISTS advertencias (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "user_id TEXT NOT NULL," +
+                "guild_id TEXT NOT NULL," +
+                "razon TEXT NOT NULL," +
+                "mod_id TEXT NOT NULL," +
+                "fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+
         try (Connection c = obtenerConexion();
              PreparedStatement ps = c.prepareStatement(sqlEventos);
              PreparedStatement ps1 =c.prepareStatement(sqlApuntado);
              PreparedStatement ps2 = c.prepareStatement(sqlConfig);
-             PreparedStatement ps3 = c.prepareStatement(sqlRecordatorio)) {
+             PreparedStatement ps3 = c.prepareStatement(sqlRecordatorio);
+             PreparedStatement ps4 = c.prepareStatement(sqlEconomia);
+             PreparedStatement ps5 =c.prepareStatement(sqlAdvertencias)
+        ) {
             ps.execute();
             ps1.execute();
             ps2.execute();
             ps3.execute();
+            ps4.execute();
+            ps5.execute();
         } catch (Exception e) {
             logger.info("Error al crear alguna tabla: {}", e.getMessage());
         }
@@ -242,14 +262,11 @@ public class ConexionBD {
         }
     }
 
-
     public void desApuntareseEvento(int eventoid,String userId){
-
         String op="Delete from Asistencia where tarea_id=? and usuario_id=?";
 
         try (Connection c=obtenerConexion();
              PreparedStatement ps=c.prepareStatement(op)){
-
             ps.setInt(1,eventoid);
             ps.setString(2,userId);
             ps.executeUpdate();
@@ -338,7 +355,6 @@ public class ConexionBD {
 
         try (Connection c = obtenerConexion();
              PreparedStatement ps = c.prepareStatement(sql)) {
-
             ps.setString(1, userID);
             ResultSet rs = ps.executeQuery();
 
@@ -369,23 +385,22 @@ public class ConexionBD {
             ps.setLong(4, timestamp);
             return ps.executeUpdate() == 1;
         } catch (Exception e) {
-            logger.info("Error al guardar recordatorio: " + e.getMessage());
+            logger.info("Error al guardar recordatorio: {}", e.getMessage());
             return false;
         }
     }
-    public boolean eliminarRecordatorio(int id){
 
+    public void eliminarRecordatorio(int id){
         String op="delete from Recordatorios where id=?";
 
         try (Connection c=obtenerConexion();
         PreparedStatement ps=c.prepareStatement(op)){
             ps.setInt(1,id);
-            return ps.executeUpdate()==1;
+            ps.executeUpdate();
 
         } catch (Exception e) {
             logger.info(e.getMessage());
         }
-        return false;
     }
     public List<RecordatorioObj> obtenerRecordatoriosVencidos(long tiempoAhora) {
         List<RecordatorioObj> lista = new ArrayList<>();
@@ -402,8 +417,102 @@ public class ConexionBD {
                 ));
             }
         } catch (Exception e) {
-            logger.info("Error al buscar recordatorios vencidos: " + e.getMessage());
+            logger.info("Error al buscar recordatorios vencidos: {}", e.getMessage());
         }
         return lista;
     }
+
+    public long[] obtenerPerfilEconomia(String userId) {
+        String sql = "SELECT monedas, ultimo_trabajo FROM Economia WHERE usuario_id = ?";
+        try (Connection c = obtenerConexion(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return new long[]{rs.getLong("monedas"), rs.getLong("ultimo_trabajo")};
+
+        } catch (Exception e) {
+            logger.info("Error al obtener perfil económico: {}", e.getMessage());
+        }
+        return new long[]{0, 0}; // Si no existe, empieza con 0 monedas y 0 de tiempo
+    }
+
+    public boolean actualizarEconomia(String userId, long nuevasMonedas, long nuevoTimestampTrabajo) {
+        String sql = "INSERT OR REPLACE INTO Economia(usuario_id, monedas, ultimo_trabajo) VALUES (?,?,?)";
+        try (Connection c = obtenerConexion(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, userId);
+            ps.setLong(2, nuevasMonedas);
+            ps.setLong(3, nuevoTimestampTrabajo);
+            return ps.executeUpdate() == 1;
+        } catch (Exception e) {
+            logger.info("Error al actualizar economía: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public LinkedHashMap<String,Long> obtenerTopEconomida(){
+        LinkedHashMap<String,Long> top=new LinkedHashMap<>();
+
+        String sql="select usuario_id,monedas from economia order by monedas DESC LIMIT 10";
+
+        try (Connection c=obtenerConexion();
+        PreparedStatement ps=c.prepareStatement(sql)){
+            ResultSet rs= ps.executeQuery();
+            while (rs.next()){
+                String id=rs.getString("usuario_id");
+                long cant=rs.getLong("monedas");
+                top.put(id,cant);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return top;
+    }
+
+    public int registrarAdvertencia(String userId, String guildId, String razon, String modId) {
+        String queryInsert = "INSERT INTO advertencias(user_id, guild_id, razon, mod_id) VALUES(?, ?, ?, ?);";
+        String queryCount = "SELECT COUNT(*) FROM advertencias WHERE user_id = ? AND guild_id = ?;";
+        int totalAvisos = 0;
+
+        // Usamos try-with-resources para cerrar automáticamente los statements y cuidar la memoria
+        try (Connection c=obtenerConexion();
+                PreparedStatement pstmtInsert = c.prepareStatement(queryInsert);
+             PreparedStatement pstmtCount = c.prepareStatement(queryCount)) {
+
+            // 1. Guardamos la nueva amonestación
+            pstmtInsert.setString(1, userId);
+            pstmtInsert.setString(2, guildId);
+            pstmtInsert.setString(3, razon);
+            pstmtInsert.setString(4, modId);
+            pstmtInsert.executeUpdate();
+
+            // 2. Contamos cuántas lleva ya acumuladas en este servidor
+            pstmtCount.setString(1, userId);
+            pstmtCount.setString(2, guildId);
+
+            try (ResultSet rs = pstmtCount.executeQuery()) {
+                if (rs.next()) totalAvisos = rs.getInt(1);
+
+            }
+
+        } catch (SQLException e) {
+            logger.info("❌ Error al registrar la advertencia en la base de datos: {}", e.getMessage());
+        }
+        return totalAvisos;
+    }
+
+    public void resetarAdvertencias(String userId, String guildId){
+        String sql = "DELETE FROM advertencias WHERE user_id = ? AND guild_id = ?;";
+        try (Connection c=obtenerConexion();
+        PreparedStatement ps=c.prepareStatement(sql)){
+
+            ps.setString(1,userId);
+            ps.setString(2,guildId);
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+        }
+
+    }
+
 }

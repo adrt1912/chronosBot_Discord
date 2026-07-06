@@ -1,9 +1,8 @@
-package aperez578.Comandos;
+package aperez578.Notificaciones.Comandos;
 
 import aperez578.Comando;
 import aperez578.ConexionBD;
 import aperez578.ContextoComando;
-import aperez578.Tarea;
 
 import java.util.Comparator;
 import java.util.List;

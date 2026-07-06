@@ -1,4 +1,4 @@
-package aperez578;
+package aperez578.Notificaciones.Comandos;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -60,7 +60,7 @@ public class BotonesEventos extends ListenerAdapter {
 
             int nuevaPagina = accion.equals("ant") ? paginaActual - 1 : paginaActual + 1;
 
-            List<aperez578.Tarea> tareas = aperez578.Comandos.ComandoCalendario.obtenerTareasFiltradas(event.getChannel().getId(), filtro);
+            List<Tarea> tareas = ComandoCalendario.obtenerTareasFiltradas(event.getChannel().getId(), filtro);
 
             if (tareas.isEmpty() || nuevaPagina >= tareas.size() || nuevaPagina < 0) {
                 event.editMessage("⚠️ Este calendario ya no está sincronizado. Por favor, usa `/calendario` de nuevo.").setComponents().setEmbeds().queue();
@@ -69,7 +69,7 @@ public class BotonesEventos extends ListenerAdapter {
 
             aperez578.ContextoComando contextoFalso = new aperez578.ContextoComando(event);
 
-            aperez578.Tarea tarea = tareas.get(nuevaPagina);
+            Tarea tarea = tareas.get(nuevaPagina);
             int total = tareas.size();
 
             EmbedBuilder embed = new EmbedBuilder()

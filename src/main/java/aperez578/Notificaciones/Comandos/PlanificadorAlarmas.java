@@ -1,5 +1,6 @@
-package aperez578;
+package aperez578.Notificaciones.Comandos;
 
+import aperez578.ConexionBD;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;

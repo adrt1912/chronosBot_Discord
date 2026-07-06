@@ -1,9 +1,10 @@
 package aperez578;
 
+import aperez578.Notificaciones.Comandos.BotonesEventos;
+import aperez578.Notificaciones.Comandos.PlanificadorAlarmas;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -71,8 +72,37 @@ public class Main {
                             Commands.slash("listar-resultados", "Muestra los resultados finales de las votaciones"),
                             Commands.slash("recordatorio", "Te envía un aviso automático pasado un tiempo determinado")
                                     .addOption(OptionType.STRING, "tiempo", "Ejemplos: 45m (minutos), 2h (horas), 1d (días)", true)
-                                    .addOption(OptionType.STRING, "mensaje", "Qué quieres que te recuerde el bot", true)
-                            )
+                                    .addOption(OptionType.STRING, "mensaje", "Qué quieres que te recuerde el bot", true),
+                            Commands.slash("trabajar","Trabaja duro para ganar unas cuantas monedas"),
+                            Commands.slash("balance","Consulta cuántas monedas tienes ahorradas en tu cuenta bancaria."),
+                            Commands.slash("ruleta", "Prueba tu suerte en la ruleta del casino apostando tus monedas.")
+                                    .addOption(OptionType.INTEGER, "cantidad", "La cantidad de monedas que quieres arriesgar.", true)
+                                    .addOptions(new net.dv8tion.jda.api.interactions.commands.build.OptionData(OptionType.STRING, "color", "El color al que quieres apostar.", true)
+                                            .addChoice("Rojo 🔴", "rojo")
+                                            .addChoice("Negro ⚫", "negro")
+                                            .addChoice("Verde 🟢", "verde")
+                                    ),
+                            Commands.slash("robar", "Intenta robarle algunas monedas a otro usuario, ¡pero cuidado con la multa si te pillan!")
+                                    .addOption(OptionType.USER, "usuario", "El usuario al que intentas robar.", true),
+                            Commands.slash("top", "Muestra el top 10 de los usuarios más ricos del servidor."),
+                            Commands.slash("transferir", "Transfiere una cantidad de tus monedas a otro usuario.")
+                                    .addOption(OptionType.USER, "usuario", "El usuario que recibirá las monedas.", true)
+                                    .addOption(OptionType.INTEGER, "cantidad", "La cantidad de monedas a transferir.", true),
+                            Commands.slash("dados", "Apuesta tus monedas en una partida de dados contra Chronos.")
+                                    .addOption(OptionType.INTEGER, "cantidad", "La cantidad de monedas que quieres apostar.", true),
+                            Commands.slash("tragaperras", "Prueba tu suerte en la máquina tragaperras de Chronos.")
+                                    .addOption(OptionType.INTEGER, "cantidad", "La cantidad de monedas que quieres apostar.", true),
+                            Commands.slash("tienda", "Muestra el catálogo de roles disponibles en la tienda de Chronos."),
+                            Commands.slash("comprar", "Adquiere un artículo o servicio de la tienda de Chronos.")
+                                    .addOption(OptionType.INTEGER, "articulo", "El número del artículo que quieres comprar (1-9).", true)
+                                    .addOption(OptionType.STRING, "texto", "Nombre del rol personalizado o texto para el megáfono.", false)
+                                    .addOption(OptionType.STRING, "color", "Color en formato HEX (Ejemplo: #FF5733) para tu rol personalizado.", false),
+                            Commands.slash("clean", "Borra una cantidad determinada de mensajes del canal actual.")
+                                    .addOption(OptionType.INTEGER, "cantidad", "Número de mensajes a borrar (1-100).", true),
+                            Commands.slash("warn", "Amonesta a un usuario del servidor registrando una advertencia.")
+                                    .addOption(OptionType.USER, "usuario", "El usuario al que quieres amonestar.", true)
+                                    .addOption(OptionType.STRING, "razon", "El motivo del aviso.", true)
+                    )
                     .queue();
         }
         // Inicializamos las tablas de la base de datos

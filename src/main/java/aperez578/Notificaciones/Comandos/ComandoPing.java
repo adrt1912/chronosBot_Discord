@@ -1,4 +1,4 @@
-package aperez578.Comandos;
+package aperez578.Notificaciones.Comandos;
 
 import aperez578.Comando;
 import aperez578.ContextoComando;
