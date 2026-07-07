@@ -1,7 +1,7 @@
 package aperez578;
 
-import aperez578.Notificaciones.Comandos.NotificacionesBD;
-import aperez578.Notificaciones.Comandos.Tarea;
+import aperez578.notificaciones.comandos.NotificacionesBD;
+import aperez578.notificaciones.comandos.Tarea;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;

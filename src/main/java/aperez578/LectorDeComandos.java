@@ -1,12 +1,12 @@
 package aperez578;
 
-import aperez578.Economia.Comandos.*;
-import aperez578.Experiencia.Comandos.ComandoRank;
-import aperez578.Experiencia.Comandos.ComandoTopXP;
-import aperez578.Notificaciones.Comandos.*;
-import aperez578.Utilidad.Comandos.ComandoAyuda;
-import aperez578.Utilidad.Comandos.ComandoClean;
-import aperez578.Utilidad.Comandos.ComandoWarn;
+import aperez578.economia.comandos.*;
+import aperez578.experiencia.comandos.ComandoRank;
+import aperez578.experiencia.comandos.ComandoTopXP;
+import aperez578.notificaciones.comandos.*;
+import aperez578.utilidad.comandos.ComandoAyuda;
+import aperez578.utilidad.comandos.ComandoClean;
+import aperez578.utilidad.comandos.ComandoWarn;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;

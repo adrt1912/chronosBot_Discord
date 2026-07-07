@@ -1,9 +1,8 @@
 package aperez578;
 
-import aperez578.Economia.Comandos.EconomiaBD;
-import aperez578.Experiencia.Comandos.ManejadorXP;
-import aperez578.Notificaciones.Comandos.BotonesEventos;
-import aperez578.Notificaciones.Comandos.PlanificadorAlarmas;
+import aperez578.experiencia.comandos.ManejadorXP;
+import aperez578.notificaciones.comandos.BotonesEventos;
+import aperez578.notificaciones.comandos.PlanificadorAlarmas;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
