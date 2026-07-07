@@ -11,8 +11,8 @@ import java.sql.SQLException;
 
 public class UtilidadBD {
 
-    private final static Logger logger = LoggerFactory.getLogger(UtilidadBD.class);
-    private final static Connection c;
+    private static final Logger logger = LoggerFactory.getLogger(UtilidadBD.class);
+    private static final Connection c;
 
     private UtilidadBD(){}
 
