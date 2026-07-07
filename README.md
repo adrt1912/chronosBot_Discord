@@ -42,7 +42,7 @@ El bot se divide en módulos independientes bien definidos:
 El código fuente sigue una estructura estricta de paquetes que independiza las características de la aplicación:
 
 ```text
-src/main/java/aperez578/
+src/main/java/aperez/
 │
 ├── Main.java                        # Punto de entrada y arranque del bot
 ├── ConexionBD.java                  # Inicializador del Core SQLite (Singleton)
